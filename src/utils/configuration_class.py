@@ -6,6 +6,7 @@ import os
 SCRIPT_DIR = Path(__file__).parent  # src/utils/
 SRC_DIR = SCRIPT_DIR.parent         # src/
 CONFIG_FILE = SRC_DIR / 'config.ini'  # Absolute path to src/config.ini
+PATH_BASE_DIR = SRC_DIR
 
 class ConfigManagerClass:
     _instance = None
@@ -42,6 +43,18 @@ class ConfigManagerClass:
             self._config.add_section(section)
         self._config.set(section, key, str(value))
         self.save_config()
+
+    def resolve_path(self, path):
+        path = Path(path)
+        if path.is_absolute():
+            return str(path)
+        return str((PATH_BASE_DIR / path).resolve())
+
+    def relative_path(self, path):
+        try:
+            return os.path.normpath(os.path.relpath(path, PATH_BASE_DIR))
+        except ValueError:
+            return os.path.normpath(path)
 
     def save_config(self):
         with open(self.config_file, 'w') as f:

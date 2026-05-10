@@ -153,10 +153,13 @@ class SetupTabWidget(QtWidgets.QWidget):
         self.setLayout(layout_controls)
 
     def browse_scene_file(self):
-        self.simulation.scene_file, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', config.get('scenes', 'scenes_folder'), 'Scene files (*.py)')
+        scenes_folder = config.resolve_path(config.get('scenes', 'scenes_folder'))
+        self.simulation.scene_file, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', scenes_folder, 'Scene files (*.py)')
+        if not self.simulation.scene_file:
+            return
         print(f'Scene file selected: {self.simulation.scene_file}')
         self.simulation.load_scene(self.simulation.scene_file)
-        config.set('scenes', 'scenes_folder', os.path.dirname(self.simulation.scene_file))
+        config.set('scenes', 'scenes_folder', config.relative_path(os.path.dirname(self.simulation.scene_file)))
         config.set('scenes', 'scene_file',    os.path.basename(self.simulation.scene_file))
 
     def reload_scene_file(self):

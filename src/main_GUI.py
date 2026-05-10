@@ -16,7 +16,8 @@ simulation_GUI = simulation_gui_class.SimulationGuiClass(simulation)
 simulation_GUI.show()
 
 if config.getboolean('scenes', 'load_scene_at_startup'):
-    scene_file = os.path.join( config.get('scenes', 'scenes_folder'), config.get('scenes', 'scene_file') )
+    scenes_folder = config.resolve_path(config.get('scenes', 'scenes_folder'))
+    scene_file = os.path.join(scenes_folder, config.get('scenes', 'scene_file'))
     simulation.load_scene(scene_file)
 
 sys.exit(app.exec_())

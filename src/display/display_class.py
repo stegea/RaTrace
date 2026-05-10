@@ -64,8 +64,6 @@ class DisplayClass(element_class.ElementClass):
         if len(self.impact_points_per_source) < lightsource_ID+1:
             self.impact_points_per_source.append(ImpactPoints(x=[], col=[], ID=[], phase=[]))
 
-        # self.impact_points_per_source[lightsource_ID].add_point()
-
         self.impact_points_per_source[lightsource_ID].ID.append(ray.ID)
         self.impact_points_per_source[lightsource_ID].x.append(ray.p1_element_rel * self.length)
         self.impact_points_per_source[lightsource_ID].phase.append(ray.phase_end) 

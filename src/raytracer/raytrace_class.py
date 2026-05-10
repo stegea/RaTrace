@@ -119,5 +119,4 @@ class RaytracerClass(QObject):
                 # Not needed, but mentioned explicitly, just to clarify that in this case no new rays are returned
                 # E.g. when rays are casted onto a display
                 pass
-        # print(ray)
-        # time.sleep(1)
+
