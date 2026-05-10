@@ -160,7 +160,7 @@ The default scene and startup options are set in `src/config.ini`. If the defaul
 
 ### Scene files
 
-The scenes itself are written in Python and are dynamically loaded whenever a new scene is loaded. See the next chapter for examples.
+The scenes itself are Python scripts and are dynamically loaded whenever a new scene is loaded. See the next chapter for examples.
 
 ---
 
