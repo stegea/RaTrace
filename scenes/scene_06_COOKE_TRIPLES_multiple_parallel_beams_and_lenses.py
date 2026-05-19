@@ -2,6 +2,7 @@ from utils.varia import mm, nm
 from light import plane_source_class
 from elements import spherical_lens_class, black_plate_class
 
+
 def load_scene():
     wavelength = 660*nm
     t1, s1, t2, s2, t3 = 25.56*mm, 7.89*mm, 4.51*mm, 14.14*mm, 19.92*mm

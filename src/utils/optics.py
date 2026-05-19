@@ -14,7 +14,7 @@ def calculate_image_distance(object_distance, focal_length):
     return image_distance
 
 
-def refract_and_reflect_ray(ray, n_coll, Ni, No, generate_reflection=False):
+def refract_and_reflect_ray(ray, n_coll, Ni, No, element_generates_reflection=False):
     from light import light_class
     rays_new = list()
 
@@ -26,10 +26,11 @@ def refract_and_reflect_ray(ray, n_coll, Ni, No, generate_reflection=False):
     r_refracted = calculate_refracted_orientation(ri, n, Ni, No)
     total_reflection = np.any(np.isnan(r_refracted))
 
-    # Calculate the reflected ray, if enabled
     max_number_of_reflections = config.getint('simulation', 'max_number_of_reflections')
-    reflections_enabled = config.getboolean('simulation', 'generate_reflected_rays')
-    if reflections_enabled  and  generate_reflection  and  ray.reflection_count < max_number_of_reflections:     # Partial reflection and transmission
+    reflections_enabled_in_UI = config.getboolean('simulation', 'generate_reflected_rays')
+
+    # Calculate the reflected ray, if enabled
+    if reflections_enabled_in_UI  and  element_generates_reflection  and  ray.reflection_count < max_number_of_reflections:     # Partial reflection and transmission
         if not total_reflection:
             cos_ai = np.dot(ray.r, n)
             cos_ao = np.dot(r_refracted, n)
@@ -43,7 +44,8 @@ def refract_and_reflect_ray(ray, n_coll, Ni, No, generate_reflection=False):
     else:
         T = 1
 
-    if not total_reflection:   # There is no refracted ray when total reflection is happening
+    # When there is no total reflection, there is refraction too
+    if not total_reflection:   
         ray_refracted = light_class.RayClass(p0=ray.p1, r=r_refracted, intensity=T * ray.intensity, wavelength=ray.wavelength, ray_parent=ray, N=No, plot_color=ray.plot_color, is_active=True, is_visible=True)
         rays_new.append(ray_refracted)
 
@@ -68,17 +70,21 @@ def calculate_refracted_orientation(ri, n, Ni, No):
 
 
 def calculate_reflectance_and_transmittance_coefficients(Ni, No, cos_ai, cos_ao):
-    # Fresnel's equations for refracted and reflected light. Legend: r=reflection, t=transmission, s=s-polarised (perpendicular), p=p-polarised (parallel), i=incoming, o=outgoing
+    # Fresnel's equations for refracted (or transmitted) and reflected light: https://www.rp-photonics.com/fresnel_equations.html
+    # Legend: r=reflection, t=transmission, s=s-polarised (perpendicular), p=p-polarised (parallel), i=incoming, o=outgoing
+
     # Amplitude coefficients
     rs = (Ni*cos_ai-No*cos_ao)/(Ni*cos_ai+No*cos_ao)
     rp = (No*cos_ai-Ni*cos_ao)/(No*cos_ai+Ni*cos_ao)
     ts = 2*Ni*cos_ai/(Ni*cos_ai+No*cos_ao)
     tp = 2*Ni*cos_ai/(No*cos_ai+Ni*cos_ao)
+
     # Intensities
     Rs = rs**2
     Rp = rp**2
     Ts = No*cos_ao/(Ni*cos_ai) * ts**2
     Tp = No*cos_ao/(Ni*cos_ai) * tp**2
+
     # For unpolarised light
     R = (Rs+Rp)/2
     T = (Ts+Tp)/2

@@ -24,6 +24,7 @@ class RaytracerClass(QObject):
         for i_ray in range(nr_of_rays):
             ray = source.rays[i_ray]
             self.raytrace_ray_and_children(ray, source, elements)
+            
             # Update the progress bar every 1%, but use an epsilon approach, otherwise it skips steps because of floating point errors slipping through
             if np.abs(np.mod((i_ray+1)/nr_of_rays, 0.01) - 0.01) < EPSILON:
                 varia.print_progress(i_ray, nr_of_rays)
@@ -31,7 +32,9 @@ class RaytracerClass(QObject):
 
     def raytrace_ray_and_children(self, ray, source, elements):
             self.raytrace_ray(ray, source, elements)
+            # print(ray)
             for ID_child in ray.ID_children:
+                # print(source.rays[ID_child])
                 self.raytrace_ray_and_children(source.rays[ID_child], source, elements)
 
     def raytrace_ray(self, ray, source, elements):

@@ -49,12 +49,6 @@ class SimulationGuiClass(QtWidgets.QWidget):
         self.tab_widget.addTab(self.tab_view, "View")
         self.tab_widget.addTab(self.tab_display, "Display")
 
-        # En/disable certain controls if a display or imager is present/absent
-        self.display_present = True if self.simulation.displays else False
-        self.tab_widget.setTabEnabled(3, self.display_present)
-        self.imager_present = any(isinstance(display, display_class.ImagerClass) for display in self.simulation.displays)
-        self.tab_view.show_pixels_checkbox.setEnabled(self.imager_present)
-
         layout_left = QtWidgets.QVBoxLayout()
         layout_left.addWidget(self.canvas,  98)
         layout_left.addWidget(self.canvas_toolbar)
@@ -78,13 +72,18 @@ class SimulationGuiClass(QtWidgets.QWidget):
         self.setWindowTitle(f'{self.window_title}  [{self.simulation.scene_file}]  -  {self.simulation.info}')
         filename = os.path.split(self.simulation.scene_file)[1]
         self.tab_setup.scene_file_text.setPlainText(filename)
-        self.display_present = True if self.simulation.displays else False
-        self.tab_widget.setTabEnabled(3, self.display_present)
-        self.imager_present = any(isinstance(display, imager_class.ImagerClass) for display in self.simulation.displays)
-        self.tab_view.show_pixels_checkbox.setEnabled(self.imager_present)
+        
+        # En/disable the display tab if a display present/absent
+        self.tab_widget.setTabEnabled(3, self.simulation.displays_present)
+
+        # En/disable some UI elements if all/none of the displays are imagers
+        self.tab_view.show_pixels_checkbox.setEnabled(self.simulation.displays_are_imagers)
+        for i_graph_type in self.tab_display.graph_types_imager:
+            self.tab_display.graphtype_dropdown.model().item(i_graph_type).setEnabled(self.simulation.displays_are_imagers)
+
         self.canvas.clear()
         self.tab_display.canvas_display.graph.cla()
-        self.update_graphics()
+        self.update_graphics()        
 
     @QtCore.pyqtSlot()
     def update_graphics(self):
@@ -448,11 +447,13 @@ class DisplayTabWidget(QtWidgets.QWidget):
         self.canvas_display_toolbar = NavigationToolbar2QT(self.canvas_display, self)
 
         self.graph_types = ["Scatterplot 1D", "Scatterplot pseudo 2D", "Scatterplot pseudo polar", "Intensity plot 1D", "Intensity plot 2D", "Phase plot"]
+        self.graph_types_imager = [3,4,5]   # The graph types that require an imager display
         self.graph_type_ind = 1
         self.graphtype_dropdown = QtWidgets.QComboBox()
         self.graphtype_dropdown.addItems(self.graph_types)
         self.graphtype_dropdown.setCurrentIndex(self.graph_type_ind)
         self.graphtype_dropdown.currentIndexChanged.connect(self.graphtype_dropdown_changed)
+
         self.greyscale_checkbox = QtWidgets.QCheckBox("Greyscale image")
         self.greyscale_checkbox.stateChanged.connect(self.greyscale_checkbox_changed)
         self.greyscale_checkbox.setChecked(self.canvas_display.greyscale_mode)

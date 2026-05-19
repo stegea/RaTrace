@@ -174,29 +174,34 @@ def generate_samples_from_pcs(x, probability_cumsum, nr_of_samples=1, randomize=
     return x_sampling
 
 
-def calculate_FWHM(intensities):
+def calculate_width_of_pulse(intensities, threshold_rel=0.5, x=None):
 
     peak_intensity = np.max(intensities)
 
     if peak_intensity==0:
         return [0, []]
+    
+    if x is None:
+        x = np.arange(len(intensities))
 
-    half_max = peak_intensity / 2
-    ind = np.where(intensities > half_max)
-    ind = ind[0]
+    threshold_abs = peak_intensity * threshold_rel
+    ind_mask = np.where(intensities > threshold_abs)
+    ind_mask = ind_mask[0]
     FWHM, pts = None, []
-    if any(ind)  and  not ind[0] == 0  and not  ind[-1]==len(intensities)-1:
+    if any(ind_mask)  and  not ind_mask[0] == 0  and not  ind_mask[-1]==len(intensities)-1:
         # Linear interpolation of the first point
-        x1, x2 = ind[0]-1, ind[0]
-        y1, y2 = intensities[x1], intensities[x2]
-        x = x1 + (x2 - x1) / (y2 - y1) * (half_max - y1)
-        pts.append(np.array([x, half_max]))
+        ind1, ind2 = ind_mask[0]-1, ind_mask[0]
+        x1, x2 = x[ind1], x[ind2]
+        y1, y2 = intensities[ind1], intensities[ind2]
+        x_interp = x1 + (x2 - x1) / (y2 - y1) * (threshold_abs - y1)
+        pts.append(np.array([x_interp, threshold_abs]))
 
         # Linear interpolation of the second point
-        x1, x2 = ind[-1], ind[-1]+1
-        y1, y2 = intensities[x1], intensities[x2]
-        x = x1 + (x2 - x1) / (y2 - y1) * (half_max - y1)
-        pts.append(np.array([x, half_max]))
+        ind1, ind2 = ind_mask[-1], ind_mask[-1]+1
+        x1, x2 = x[ind1], x[ind2]
+        y1, y2 = intensities[ind1], intensities[ind2]
+        x_interp = x1 + (x2 - x1) / (y2 - y1) * (threshold_abs - y1)
+        pts.append(np.array([x_interp, threshold_abs]))
 
         FWHM = pts[1][X] - pts[0][X]
 

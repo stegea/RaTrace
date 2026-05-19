@@ -20,8 +20,7 @@ class FlatMirrorClass(element_class.ElementClass):
 
     def propagate_ray(self, ray):
         new_rays = list()
-        if (self.n_coll is not None)    and    (geometry.point_is_on_PP_line(ray.p1, self.pts[0], self.pts[1])):
-            # R = 2 * np.dot(self.n_coll, -ray.r) * self.n_coll + ray.r
+        if (self.n_coll is not None)    and    (geometry.point_is_on_PP_line(ray.p1, self.pts[0], self.pts[1]))   and   ray.r.dot(self.n_coll) < 0:  # If the ray hits the mirror in forward direction
             r_refl = optics.calculate_reflected_orientation(ray.r, self.n_coll)
             ray_new = light_class.RayClass(p0=ray.p1, r=r_refl, intensity=ray.intensity, wavelength=ray.wavelength, N=ray.N, ray_parent=ray, source_element=self, plot_color=ray.plot_color, is_active=True, is_visible=True)
             new_rays.append(ray_new)
@@ -37,8 +36,6 @@ class FlatMirrorClass(element_class.ElementClass):
                 facecolor = 'darkgrey'
                 edgecolor = 'none'
                 mirrorcolor = 'cyan'
-
-
 
             poly = plt.Polygon(self.pts, closed=True, facecolor=facecolor, edgecolor=edgecolor, alpha=1, zorder=0)
             graph.add_patch(poly)

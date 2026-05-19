@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 class GlassPrismIsoscelesClass(glass_element_class.GlassElementClass):
-    def __init__(self, p0=np.array([0,0]), n0=np.array([1,1]), angle=90*deg, length=10*mm, N=N_glass, generate_reflections=False, is_active=True, is_visible=True):
+    def __init__(self, p0=np.array([0,0]), n0=np.array([1,1]), angle=90*deg, length=10*mm, N=N_glass, generate_reflections=True, is_active=True, is_visible=True):
         self.angle = angle
         self.length = length
         self.N = N

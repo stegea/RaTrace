@@ -55,7 +55,7 @@ The information in this README will later be formatted into a Wiki page of this 
 <b>To be implemented features (& priority)</b>
 * Lenses: aspherical lens
 * Glass elements: sphere, microlens array
-* Mirrors: spherical mirror, one-way mirror, dichroic mirror
+* Mirrors: spherical mirror, dichroic mirror
 * Light source: B/W image source
 * Varia: Bandpass filter
 * Better error handling when there is a bug in the scene

@@ -106,6 +106,13 @@ class SimulationClass(QObject):
             else:
                 print(f'{RED}Item {item} is not recognised as a valid type{WHITE}')
                 return False
+
+        # Check if there are displays in the scene, and whether they are all imagers
+        self.displays_present = True if self.displays else False
+        print(f'Displays present: {self.displays_present}')
+        self.displays_are_imagers = all(isinstance(display, imager_class.ImagerClass) for display in self.displays)
+        print(f'All displays are imagers: {self.displays_are_imagers}')
+
         return True
 
     def run(self):
@@ -125,8 +132,7 @@ class SimulationClass(QObject):
 
         # Process display information
         for display in self.displays:
-            display.collect_cast_rays()
-            display.process_rays()
+            display.process_cast_rays()
             if isinstance(display, imager_class.ImagerClass):
                 display.process_image()
 

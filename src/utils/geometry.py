@@ -228,10 +228,10 @@ def line_arc_intersections(C_arc, p_ends, p_line, r_line):
 
     if len(t) == 0:
         return [None, None]               # No intersections in the forward direction
-    elif len(t) > 1  and  t[1] <= t[1]:
+    elif len(t) > 1  and  t[1] <= t[0]:
         return [np.array(pts[1]), t[1]]   # There are 2 intersection points, and the second is the closest
     else:
-        return [np.array(pts[0]), t[0]]   # If only one point or the first point is the closest
+        return [np.array(pts[0]), t[0]]   # If only one point OR the first point is the closest
 
 def line_parabola_intersections(f, p0, n0, D, p_line, r_line):
     # First, transform the line back to the reference frame of the [0,1] upward facing parabola through [0,0]

@@ -1,8 +1,4 @@
 import numpy as np
-from typing import NamedTuple
-
-
-from utils import varia
 from utils.varia import mm, X, Y
 from utils import geometry
 from utils.configuration_class import config
@@ -18,6 +14,9 @@ class DisplayClass(element_class.ElementClass):
     nr_of_displays = 0
 
     def __init__(self, p0=np.array([0,0]), n0=np.array([-1,0]), length=10*mm, is_active=True, is_visible=True):
+        if DisplayClass.nr_of_displays > 0:
+            raise Exception(f'Maximally 1 display supported for the moment.')
+        
         # Basic parameters
         self.length = length
         self.name = 'Display'
@@ -31,13 +30,10 @@ class DisplayClass(element_class.ElementClass):
         DisplayClass.nr_of_displays += 1
 
     def reset(self):
-        # # We need to temporarily add cast rays to a list  the ray to the list of rays cast onto the imager, because the raytrace_ray function adds ray information only after the check_collision function
-        # self.cast_rays = list()
-        
-        # The indices of impact_points in the list correspond to the light source ID, 
-        # so that impact_points[0] contains the list of impact points of rays originating from light source with ID=0, etc.
-        self.impact_points_per_source : list[ImpactPoints] = []
-        
+        # We add cast rays to a list first, because the raytrace_ray function adds ray information only after the check_collision function
+        self.cast_rays = list()
+        self.nr_of_IPs = None
+
     def check_collision(self, ray):
         if not self.is_active:
             return [None, None, None]
@@ -52,74 +48,31 @@ class DisplayClass(element_class.ElementClass):
         return [p, t1, t0]
 
     def propagate_ray(self, ray):
-        # # Add the ray to the list of rays cast onto the imager, because the raytrace_ray function adds ray information only after the propagate_ray function
-        # self.cast_rays.append(ray)
-        
-        # Get the ray's lightsource ID, to trace from which source it originates
-        lightsource_ID = ray.lightsource_ID
-
-        # If it's the first time we encounter this light source ID, we first need to add 
-        # an empty list of impact points to the list, so that we can store the impact points
-        # of rays originating from this light source in the correct index of the list
-        if len(self.impact_points_per_source) < lightsource_ID+1:
-            self.impact_points_per_source.append(ImpactPoints(x=[], col=[], ID=[], phase=[]))
-
-        self.impact_points_per_source[lightsource_ID].ID.append(ray.ID)
-        self.impact_points_per_source[lightsource_ID].x.append(ray.p1_element_rel * self.length)
-        self.impact_points_per_source[lightsource_ID].phase.append(ray.phase_end) 
-    
-        # In case of one single ray simulated, this results in a list or so --> STILL TO DEBUG !!!
-        col = ray.plot_color
-        if isinstance(col, list):
-            col = ray.plot_color[0]
-        col = varia.load_colormap(color=col ,N_rays=1, wavelength=ray.wavelength)
-
-        self.impact_points_per_source[lightsource_ID].col.append(col[0])
-    
+        # Add the ray to the list of rays cast onto the imager, because the raytrace_ray function adds ray information only after the propagate_ray function
+        self.cast_rays.append(ray)
+      
         return
 
-    def collect_cast_rays(self):
-        print('start collecting ray impact points')
-        # self.cast_rays_x     = np.empty(len(self.cast_rays))        # Position of a ray onto the display, in mm from the start of the display
-        # self.cast_rays_col   = np.empty((len(self.cast_rays),4))    # Color array of the cast rays
-        # self.cast_rays_ID    = np.empty(len(self.cast_rays))        # The ID list of cast rays
-        # self.cast_rays_phase = np.empty(len(self.cast_rays))        # A list of ray phases
+    def process_cast_rays(self):
+        # Retrieve the impact point (IP) information from the cast rays
+        self.IP_pts             = np.array([ray.p1                           for ray in self.cast_rays])   # The 2D coordinates of the IPs, which are the points where the rays hit the display
+        self.IP_pts_1D          = np.array([ray.p1_element_rel * self.length for ray in self.cast_rays])   # The 1D position of the impact point along the display, in absolute coordinates, between 0 and the length of the display
+        self.IP_t_1D            = np.array([ray.p1_element_rel               for ray in self.cast_rays])   # The 1D scalar between 0 and 1, representing the position of the impact point along the display, relative to the start of the display
+        self.IP_phase           = np.array([ray.phase_end                    for ray in self.cast_rays])
+        self.IP_intensity       = np.array([ray.intensity                    for ray in self.cast_rays])
+        self.IP_r               = np.array([ray.r                            for ray in self.cast_rays])
+        self.IP_col             = np.array([ray.plot_color                   for ray in self.cast_rays])
+        self.IP_ray_ID          = np.array([ray.ID                           for ray in self.cast_rays])
+        self.IP_lightsource_ID  = np.array([ray.lightsource_ID               for ray in self.cast_rays])
 
-        for i_cast_ray in range(len(self.cast_rays)):
-            lightsource_ID = self.cast_rays[i_cast_ray].lightsource_ID
+        self.nr_of_IPs          = len(self.IP_pts_1D)
+        self.nr_of_lightsources = np.max(self.IP_lightsource_ID)+1
 
-            # self.impact_points[lightsource_ID].ID.append(self.cast_rays[i_cast_ray].ID)
-            # self.impact_points[lightsource_ID].x.append(self.cast_rays[i_cast_ray].p1_element_rel * self.length)
-            # self.impact_points[lightsource_ID].phase.append(self.cast_rays[i_cast_ray].phase_end)
-            # self.cast_rays_ID[i_cast_ray]       = self.cast_rays[i_cast_ray].ID
-            # self.cast_rays_x[i_cast_ray]        = self.cast_rays[i_cast_ray].p1_element_rel * self.length
-            # self.cast_rays_phase[i_cast_ray]    = self.cast_rays[i_cast_ray].phase_end
+        print('End of processing cast rays on the display. Number of impact points: ', self.nr_of_IPs)
 
-            # In the originating cast ray, store its ID and cast position onto the display
-            self.cast_rays[i_cast_ray].display_ID = self.ID
-            self.cast_rays[i_cast_ray].display_x  = self.cast_rays[i_cast_ray].p1_element_rel * self.length
-
-            # In case of one single ray simulated, this results in a list or so --> STILL TO DEBUG !!!
-            col = self.cast_rays[i_cast_ray].plot_color
-            if isinstance(col, list):
-                col = col[0]
-            col = varia.load_colormap(color=col ,N_rays=1, wavelength=self.cast_rays[i_cast_ray].wavelength)
-            # self.source_impact_points[lightsource_ID].col.append(col[0])
-            # self.cast_rays_col[i_cast_ray] = col[0]
-
-            if len(self.source_impact_points) < lightsource_ID+1:  # Add a set of impact points to the list
-                self.source_impact_points.append(ImpactPoints(x=[], col=[], ID=[], phase=[]))
-
-            self.source_impact_points[lightsource_ID].add_point(x=self.cast_rays[i_cast_ray].display_x,
-                                                                phase=self.cast_rays[i_cast_ray].phase_end,
-                                                                ID=self.cast_rays[i_cast_ray].ID,
-                                                                col=col)
-
-        print('end of processing')
-
-    def process_rays(self):
-        pass
-
+    def i_of_IPs_for_lightsource(self, lightsource_ID):
+        return [i for i, ID in enumerate(self.IP_lightsource_ID) if ID == lightsource_ID]
+  
     def __str__(self):
         txt = f'Display --> Element ID={self.ID}, p0={self.p0}, n0={self.n0}, length={self.length}'
         return txt
@@ -135,24 +88,30 @@ class DisplayClass(element_class.ElementClass):
 
 
 
-# NamedTuple makes it a lightweight tuple-like data container where each position also has a name, making it easier to access the data. 
-# This means that members can be accessed both by name and by index, e.g. SIP.x or SIP[0] will give you the same list of x positions.
-# The immutability of NamedTuple means that once an instance is created, its fields cannot be modified.
-# NamedTuple itself is immutable, so you cannot reassign sip.x. 
-# But in this case sip.x is a list, and the list contents are still mutable, so you can modify the list
-# (e.g., by appending new points) without changing the reference to the list itself.
-class ImpactPoints(NamedTuple):
-    x: list
-    col: list
-    ID: list
-    phase: list
+# # NamedTuple makes it a lightweight tuple-like data container where each position also has a name, making it easier to access the data. 
+# # This means that members can be accessed both by name and by index, e.g. SIP.x or SIP[0] will give you the same list of x positions.
+# # The immutability of NamedTuple means that once an instance is created, its fields cannot be modified.
+# # NamedTuple itself is immutable, so you cannot reassign sip.x. 
+# # But in this case sip.x is a list, and the list contents are still mutable, so you can modify the list
+# # (e.g., by appending new points) without changing the reference to the list itself.
+# class ImpactPointsClass(NamedTuple):
+#     x_rel: list              
+#     t_rel: list              
+#     pts_abs: list              
+#     phase: list          
+#     intensity: list      
+#     r: list
+#     col: list            
+#     ID: list             
+#     lightsource_ID: list 
 
-    @property
-    def nr_of_points(self):
-        return len(self.x)
+#     @property
+#     def nr_of_points(self):
+#         return len(self.x_rel)
 
-    def add_point(self, x=None, col=None, ID=None, phase=None):
-        self.x.append(x)
-        self.ID.append(ID)
-        self.col.append(col)
-        self.phase.append(phase)
+#     @property
+#     def nr_of_lightsources(self):
+#         return max(self.lightsource_ID)+1
+
+#     def ind_lightsource(self, lightsource_ID):
+#         return [ind for ind, ID in enumerate(self.lightsource_ID) if ID == lightsource_ID]

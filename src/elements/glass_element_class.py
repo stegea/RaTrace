@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 class GlassElementClass(element_class.ElementClass):
-    def __init__(self, p0, n0, pts, N=N_glass, generate_reflections=False, is_active=True, is_visible=True):
+    def __init__(self, p0, n0, pts, N=N_glass, generate_reflections=True, is_active=True, is_visible=True):
 
         self.N = N
         self.generate_reflections = generate_reflections
@@ -37,7 +37,7 @@ class GlassElementClass(element_class.ElementClass):
         No = optics.calculate_refraction_index(No, ray.wavelength)
 
         # Calculate both the refracted and reflected rays, if enabled for that element and generating reflections are enabled overall.
-        rays_new = optics.refract_and_reflect_ray(ray, self.n_coll, Ni=Ni, No=No, generate_reflection=self.generate_reflections)
+        rays_new = optics.refract_and_reflect_ray(ray, self.n_coll, Ni=Ni, No=No, element_generates_reflection=self.generate_reflections)
 
         for ray_new in rays_new:
             ray_new.source_element = self

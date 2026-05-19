@@ -11,7 +11,7 @@ IAS_width = 25
 IAS_slope = 12
 
 
-# Todo: getting rid of the pixels (???)
+# TODO: get rid of the pixels (???)
 
 class ImagerClass(display_class.DisplayClass):
     def __init__(self, p0=np.array([0, 0]), n0=np.array([-1, 0]), length=10 * mm, pixel_size=100*µm, is_active=True, is_visible=True):
@@ -19,90 +19,116 @@ class ImagerClass(display_class.DisplayClass):
 
         # Instantiate the display class
         super().__init__(p0=p0, n0=n0, length=length, is_active=is_active, is_visible=is_visible)
-        self.name = 'imager'
+        self.name = 'Imager'
+
+        # pts_1D   0   3   6   9  12  15   --> PHYSICAL distances of pixel boundaries ALONG the imager. Each pixel has a width of 3, so the imager has a total length of 15
+        # t_1D     0  0.2 0.4 0.6 0.8  1   --> PROPORTIONAL distances of pixel boundaries ALONG the imager, with a total length of 1
+        #          |   |   |   |   |   |
+        #          |---|---|---|---|---|
+        # i          0   1   2   3   4     --> Pixel indices, with a total number of 15/3=5
+        #            |   |   |   |   |
+        # pt0_1D   1.5 4.5 7.5 10.5 13.5   --> PHYSICAL distances of pixel centers ALONG the imager, which are in the middle of the pixel boundaries
 
         # Derived parameters & reset
-        self.number_of_pixels = int(np.floor(self.length / self.pixel_size))
+        self.nr_of_pixels = int(np.floor(self.length / self.pixel_size))
+
+        # The N pixel indices, between 0 and N-1
+        self.px_i  = np.arange(self.nr_of_pixels)
+
+        # The N+1 pixel boundaries in 2D coordinates 
+        self.px_pts_2D = np.zeros((2, self.nr_of_pixels + 1))   # pixel boundaries
+        self.px_pts_2D[X] = np.linspace(self.pts[0][X], self.pts[1][X], self.nr_of_pixels+1, endpoint=True)    # The pixel boundaries in 2D coordinates
+        self.px_pts_2D[Y] = np.linspace(self.pts[0][Y], self.pts[1][Y], self.nr_of_pixels+1, endpoint=True)
+
+        # The N pixel centers in 2D coordinates
+        self.px_pt0_2D = np.zeros((2, self.nr_of_pixels))       # pixel centers
+        self.px_pt0_2D[X] = (self.px_pts_2D[X][:-1] + self.px_pts_2D[X][1:]) / 2                                         # The pixel centers in 2D coordinates
+        self.px_pt0_2D[Y] = (self.px_pts_2D[Y][:-1] + self.px_pts_2D[Y][1:]) / 2
+
+        # The N pixel centers in 1D coordinates along the imager, between s_px/2 and length-s_px/2
+        self.px_x0_1D  = np.linspace(self.pixel_size/2, self.length-self.pixel_size/2, self.nr_of_pixels, endpoint=True)    # The pixel centers, in relative coordinates along the imager, between 
+
         self.reset()
 
     def reset(self):
-        self.pixels    = self.generate_pixels()
-        self.intensity = np.zeros((self.number_of_pixels,))
-        self.phase     = np.zeros((self.number_of_pixels,))
-        self.image     = np.zeros((10,self.number_of_pixels,))
-        self.COG_IMF   = np.empty(1)
-        self.COG_WCF   = np.empty(2)
-        self.pixels_x = np.array([pixel.x for pixel in self.pixels])
+        # Initializing the image, i.e. the result from the impact points
+        self.intensity = np.zeros((self.nr_of_pixels,))
+        self.phase     = np.zeros((self.nr_of_pixels,))
+        self.E         = np.zeros((self.nr_of_pixels,))
+        self.img_2D    = np.zeros((10,self.nr_of_pixels,))
+        self.COG_x_1D  = np.empty(1)
+        self.COG_2D    = np.empty(2)
+
         super().reset()
 
-    def generate_pixels(self):
-        pixels = []
-
-        x_range = np.linspace(self.pts[0][X], self.pts[1][X], self.number_of_pixels, endpoint=True)
-        y_range = np.linspace(self.pts[0][Y], self.pts[1][Y], self.number_of_pixels, endpoint=True)
-
-        for x, y in zip(x_range, y_range):
-            pixel = PixelClass(pt=[x,y], r=self.r[0], n=self.n0, size=self.pixel_size, ID=len(pixels))
-            pixels.append(pixel)
-
-        return pixels
-
-    # def set_ROI(self, ROI_position, ROI_width):
-    #     nr_of_active_pixels = 0
-    #     for pixel in self.pixels:
-    #         if np.abs( pixel.pt_center[X] - ROI_position[X] ) > np.abs(ROI_width/2*self.r[X]):
-    #             pixel.is_active = False
-    #         else:
-    #             nr_of_active_pixels += 1
-    #     print('Enabling imager ROI: ' + str(nr_of_active_pixels) + '/' + str(self.number_of_pixels) + ' pixels active')
-    #     return
+    def i_from_x_rel(self, x_1D):
+        i = (np.floor(x_1D/self.length*self.nr_of_pixels)).astype(int)
+        return np.clip(i, 0, self.nr_of_pixels - 1)     # For the extreme case (x_1D==self.length), in which case i would be equal to self.nr_of_pixels, which is out of bounds, so we set it to the last pixel index
 
     # TODO: image_multiplicator implementation, is now 1
+    # Process the cast rays, i.e. calculate the intensity and phase of the image, and the COG of the image, from the impact points
     def process_image(self):
-        # Checking which rays fall into which pixel, then adding intensity to that pixel
         E_tot = 0
-        for ray in self.cast_rays:
-            ray.imager_pixel_ID = int(np.round(ray.p1_element_rel*(self.number_of_pixels - 1)))  # The rays belongs to, or is cast into a pixel with this ID
-            incoming_intensity = ray.intensity * self.calculate_imager_angular_sensitivity(-ray.r)  # Minus direction because the ray comes in the opposite direction of the imager normal
-            phase = ray.phase_end  if  config.getboolean('simulation', 'use_phase_information')  else 0     # Take into account (or not) the ray's phase
+
+        # -------------- IMPORTANT NOTE ----------------------------------------------------------------------------------------
+        # THE FOLLOWING ONLY WORKS FOR MONOCHROMATIC LIGHT, BECAUSE THE TEMPORAL PHASE INTEGRATION IS NOT TAKEN INTO ACCOUNT.
+        # 2 POLYCHROMATIC BEAMS WILL NORMALLY NOT INTERFERE, BUT THAT IS THUS NOT TAKEN INTO ACCOUNT INTO THIS IMPLEMENTATION.
+        # ALL RAYS WILL INTERFERE WITH EACH OTHER, WHEN THE "use_phase_information" OPTION IS ENABLED IN THE CONFIG FILE OR UI.
+        # ----------------------------------------------------------------------------------------------------------------------
+
+        # Loop over the impact points, and add the complex electric field of each impact point to the corresponding pixel
+        for i_pt in range(self.nr_of_IPs):
+            # imager_pixel_ID = int(np.round(ray.p1_element_rel*(self.nr_of_pixels - 1)))  # The rays belongs to, or is cast into a pixel with this ID
+            incoming_intensity = self.IP_intensity[i_pt] * self.calculate_imager_angular_sensitivity(-self.IP_r[i_pt])  # Minus direction because the ray comes in the opposite direction of the imager normal
+            
+            # Retrieve the phase information of the ray, if the use_phase_information option is enabled in the config file, otherwise set it to 0
+            if  config.getboolean('simulation', 'use_phase_information'):
+                phase = self.IP_phase[i_pt]  # Treat all light as coherent and monochromatic, taking into account the ray's phase, so we can do interference calculations
+            else:
+                phase = 0                    # Ignore the ray's phases, treating all light decoherently
+            
+            # Calculate the complex electric field of the ray, which is a complex number whose magnitude corresponds to the square root of the intensity
+            # and whose angle corresponds to the phase of the ray, and add it to the complex electric field of the pixel
             E_ray = np.sqrt(incoming_intensity) * np.exp(1j * np.array(phase))
-            self.pixels[ray.imager_pixel_ID].E += E_ray    # Add all complex intensities to each pixel
+
+            # The ray is cast into a pixel with the following index:
+            i_px = self.i_from_x_rel(self.IP_pts_1D[i_pt])  
+            self.E[i_px] += E_ray    # Add all complex intensities to each pixel
 
         # Transfer pixel intensity values into a 1D-array
-        for i_px in range(len(self.pixels)):
-            self.pixels[i_px].intensity = np.abs(  self.pixels[i_px].E) ** 2
-            self.pixels[i_px].phase     = np.angle(self.pixels[i_px].E)
-
-            self.intensity[i_px] = self.pixels[i_px].intensity
-            self.phase[i_px]     = self.pixels[i_px].phase
+        for i_px in range(self.nr_of_pixels):
+            # The intensity of the pixel is the square of the magnitude of the complex electric field, and the phase is the angle of that field
+            self.intensity[i_px] = np.abs(  self.E[i_px]) ** 2
+            self.phase[i_px]     = np.angle(self.E[i_px])
 
         # For better visual interpretation, make a 2D image
-        self.image = np.tile(self.intensity, (10, 1))
+        self.img_2D = np.tile(self.intensity, (10, 1))
 
-        self.process_centroid()
+        self.process_results()
 
-    def process_centroid(self):
-        # Calculate peak and summed intensities
-        self.peak_intensity = np.max(self.intensity)
-        self.summed_intensity = np.sum(self.intensity)
+    def process_results(self):
+        # Calculate the peak intensity
+        self.peak_intensity   = np.max(self.intensity)
 
         # Masking the image above a certain intensity threshold
         self.peak_cutoff_threshold = 0.00 * self.peak_intensity  # The intensity threshold for background removal
         self.intensity_masked = np.copy(self.intensity)
         self.intensity_masked[self.intensity_masked < self.peak_cutoff_threshold] = 0.0  # Background-substracted image
-
-        # Centre-of-gravity (or COG) of the pulse, in imager frame coordinates
-        x = np.linspace(0, self.number_of_pixels - 1, self.number_of_pixels)
         self.summed_intensity_masked = np.sum(self.intensity_masked)
-        self.COG_IMF = np.dot(self.intensity_masked, x) / self.summed_intensity_masked
 
-        fraction = self.COG_IMF / (self.number_of_pixels - 1)  # Fraction of the total imager length the COG is positioned
+        # Center-of-gravity (or COG) of the pulse, along the imager.
+        # Suppose the intensities are centered at the pixel centers, then the COG is the weighted average of the pixel centers and intensity of each pixel
+        self.COG_x_1D = np.dot(self.intensity_masked, self.px_x0_1D) / self.summed_intensity_masked
+
+        # The COG expressed in absolute 2D coordinates
+        fraction = self.COG_x_1D / self.length  # Fraction of the total imager length the COG is positioned
         pts = varia.sort_x_left_to_right(self.pts)  # Sort the imager points in +X order because it might be inverted, corrupting the following calculation
-        self.COG_WCF[X] = self.pts[0,X] + fraction * (self.pts[1,X] - self.pts[0,X])  # Position of the COG in world frame coordinates
-        self.COG_WCF[Y] = self.pts[0,Y] + fraction * (self.pts[1,Y] - self.pts[0,Y])
+        self.COG_2D[X] = pts[0,X] + fraction * (pts[1,X] - pts[0,X])  # Position of the COG in world frame coordinates
+        self.COG_2D[Y] = pts[0,Y] + fraction * (pts[1,Y] - pts[0,Y])
 
-        # Calculating the FWHM
-        [self.FWHM, self.FWHM_pts] = varia.calculate_FWHM(self.intensity)
+        # Calculating the FWHM of the intensity distribution, expressed in absolute coordinates along the imager, and the corresponding points at which the FWHM is reached
+        [self.pulse_width, self.pulse_pts] = varia.calculate_width_of_pulse(self.intensity, threshold_rel=0.5, x=self.px_x0_1D)
+        print(f'COG_x_1D: {self.COG_x_1D:.3f}mm, pulse_width: {self.pulse_width:.3f}mm, pulse_pts: {self.pulse_pts}')
 
     def calculate_imager_angular_sensitivity(self, r, verbose=False):
         # Empirical formula that approximates the experimental results, see screenshot from Matlab simulation
@@ -111,8 +137,9 @@ class ImagerClass(display_class.DisplayClass):
 
         r = geometry.normalize(r)
         angle = geometry.angle_between_vectors(self.n0, r) * 180 / math.pi
-        multiplicator = (1 / 2) * ((1 + IAS_min) + (1 - IAS_min) * math.erf((-angle + IAS_width) / IAS_slope))
-        return 1 + 0 * multiplicator
+        multiplicator = 1
+        # multiplicator = (1 / 2) * ((1 + IAS_min) + (1 - IAS_min) * math.erf((-angle + IAS_width) / IAS_slope))
+        return multiplicator
 
     # def plot_imager_efficiency_map(self, p, scale=1, col='black'):
     #     print("Plotting imager efficiency map")
@@ -132,40 +159,18 @@ class ImagerClass(display_class.DisplayClass):
     #     return
 
     def __str__(self):
-        txt = f'Imager --> Element ID={self.ID}, p0={self.p0}, n0={self.n0}, length={self.length}, pixel size={self.pixel_size}, number of pixels={self.number_of_pixels}'
+        txt = f'Imager --> Element ID={self.ID}, p0={self.p0}, n0={self.n0}, length={self.length}, pixel size={self.pixel_size}, number of pixels={self.nr_of_pixels}'
         return txt
 
     def plot(self, graph):
         super().plot(graph)
-        if config.getboolean('view', 'show_pixels'):
-            for pixel in self.pixels:
-                pixel.plot(graph)
-            graph.scatter(self.pixels[ 0].p0[X],    self.pixels[0].p0[Y],   s=20, facecolor='g', marker='o')
-            graph.scatter(self.p0[X],               self.p0[Y],             s=20, facecolor='g', marker='o')
-            graph.scatter(self.pixels[-1].p0[X],    self.pixels[0-1].p0[Y], s=20, facecolor='g', marker='o')
-            graph.text(self.pixels[0].p0[X]  - 0.2*self.n0[X], self.pixels[0].p0[Y]  - 0.2*self.n0[Y],  f'pixel 0: p=[{self.pixels[0].p0[X]:.3f}, {self.pixels[0].p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
-            graph.text(self.p0[X]            - 0.2*self.n0[X], self.p0[Y]            - 0.2*self.n0[Y],  f'pixel {self.number_of_pixels/2-1}: p=[{self.p0[X]:.3f}, {self.p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
-            graph.text(self.pixels[-1].p0[X] - 0.2*self.n0[X], self.pixels[-1].p0[Y] - 0.2*self.n0[Y],  f'pixel {self.number_of_pixels-1}: p=[{self.pixels[-1].p0[X]:.3f}, {self.pixels[-1].p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
+        # if config.getboolean('view', 'show_pixels'):
+        #     for pixel in self.pixels:
+        #         pixel.plot(graph)
+        #     graph.scatter(self.pixels[ 0].p0[X],    self.pixels[0].p0[Y],   s=20, facecolor='g', marker='o')
+        #     graph.scatter(self.p0[X],               self.p0[Y],             s=20, facecolor='g', marker='o')
+        #     graph.scatter(self.pixels[-1].p0[X],    self.pixels[0-1].p0[Y], s=20, facecolor='g', marker='o')
+        #     graph.text(self.pixels[0].p0[X]  - 0.2*self.n0[X], self.pixels[0].p0[Y]  - 0.2*self.n0[Y],  f'pixel 0: p=[{self.pixels[0].p0[X]:.3f}, {self.pixels[0].p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
+        #     graph.text(self.p0[X]            - 0.2*self.n0[X], self.p0[Y]            - 0.2*self.n0[Y],  f'pixel {self.nr_of_pixels/2-1}: p=[{self.p0[X]:.3f}, {self.p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
+        #     graph.text(self.pixels[-1].p0[X] - 0.2*self.n0[X], self.pixels[-1].p0[Y] - 0.2*self.n0[Y],  f'pixel {self.nr_of_pixels-1}: p=[{self.pixels[-1].p0[X]:.3f}, {self.pixels[-1].p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
 
-
-class PixelClass:
-    def __init__(self, pt=[0, 0], r=[1, 0], n=[0, 1], size=5, ID=0):
-        self.p0 = pt    # Coordinate at the center of the pixel
-        self.n = n
-        self.r = r
-        self.size = size
-        self.ID = ID
-        self.intensity = 0
-        self.E = 0
-        self.ray_ID_list = list()
-        self.x = ID*size    # U-coordinate, i.e. in imager frame
-
-        self.pts = geometry.points_from_position_direction_length(p0=self.p0, r=self.r, L=self.size, sort_left_to_right=True, symmetric=True)
-
-        self.is_active = True
-
-    def plot(self,graph):
-        graph.scatter(self.p0[X], self.p0[Y], s=5, facecolor='g', marker='o')
-        graph.scatter(self.pts[1,X], self.pts[1,Y], s=20, facecolor='g', marker='+', linewidth=1)
-        if self.ID == 0:
-            graph.scatter(self.pts[0,X], self.pts[0,Y], s=20, facecolor='g', marker='+', linewidth=1)

@@ -138,6 +138,7 @@ class RayClass:
             self.ID_parent = ray_parent.ID
             self.phase_start = ray_parent.phase_end
             self.lightsource_ID = ray_parent.lightsource_ID
+            self.reflection_count = ray_parent.reflection_count
 
     def reset(self):
         self._p1 = None             # The end point of the ray is a private member. This cannot be simply set, a setter method is used.
@@ -182,7 +183,7 @@ class RayClass:
         length_str = f'{self.length:7.4f}' if self.length is not None else 'None'
         intensity_str = 'None' if self.intensity is None else f'{self.intensity:6.3f}'
         sourceID_str = f'{self.source_element.name} {self.source_element.ID}' if self.source_element is not None else f'{self.source_element}'
-        s = f'Ray nr {self.ID+1}/{RayClass.nr_of_rays} --> ID= {self.ID}, p0={p0_str}, p1={p1_str}, length={length_str}, r={r_str}, angle={geometry.angle_from_vector(self.r)/deg:6.2f}°, wavelength={self.wavelength/nm:.0f}nm, intensity={intensity_str}, source={sourceID_str}, plot color={self.plot_color}'
+        s = f'Ray nr {self.ID+1}/{RayClass.nr_of_rays} --> ID= {self.ID}, p0={p0_str}, p1={p1_str}, length={length_str}, r={r_str}, angle={geometry.angle_from_vector(self.r)/deg:6.2f}°, wavelength={self.wavelength/nm:.0f}nm, intensity={intensity_str}, source={sourceID_str}, children={self.ID_children}, reflection count={self.reflection_count}, is active={self.is_active}, plot color={self.plot_color}'
         return s
 
     def plot(self, graph, linewidth, col, intensity_representation):

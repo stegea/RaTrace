@@ -2,9 +2,9 @@ from PyQt5 import QtWidgets
 import sys
 import os
 from utils.configuration_class import config
+from raytracer import simulation_class
 from gui import splash
 from gui import simulation_gui_class
-from raytracer import simulation_class
 
 
 app = QtWidgets.QApplication(sys.argv)

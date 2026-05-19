@@ -1,8 +1,15 @@
 from utils.varia import mm, nm
 from utils.optics import N_glass
 from light import plane_source_class
-from elements import spherical_lens_class, black_plate_class, flat_mirror_class, parabolic_mirror_class, black_plate_class
+from elements import spherical_lens_class, black_plate_class, flat_mirror_class, parabolic_mirror_class
 from display import display_class
+
+
+# =========================================================================================================================================================================
+# In order to have the correct raytracing done, deselect "Items are ordered" in the simulation tab, otherwise the order of the elements will not be correct, 
+# and the rays will not be traced correctly.
+# =========================================================================================================================================================================
+
 
 def load_scene():
 
@@ -24,10 +31,9 @@ def load_scene():
     lens_ocular = spherical_lens_class.SphericalLensClass(p0=[px_exit,-150],  n0=[0,1], f=50*mm, thickness=5, diameter=D_lens, N=N_glass)
 
     lens_eye = spherical_lens_class.SphericalLensClass(p0=[px_exit,-180],  n0=[0,1], f=f_eye, thickness=1, diameter=5*mm, N=N_glass)
-    beamdump_eye = black_plate_class.BlackPlateClass(p0=[100.2, -180-17], n0=[0,1], length=2*mm, thickness=1*mm, plot_color='black')
-    # retina = display_class.DisplayClass(p0=[100.2, -180-17], n0=[0,1], length=2*mm)
+    retina = display_class.DisplayClass(p0=[100.2, -180-17], n0=[0,1], length=2*mm)
 
-    info = 'Newtonian telescope with ocular and eye'
+    info = 'Newtonian telescope with ocular and simplified eye model'
 
-    return [beam1, beam2, beam3, tubewall1, tubewall2, tubewall3, parabolicmirror, flatmirror, lens_ocular, lens_eye, ocularwall1, ocularwall2, beamdump_eye, info]
+    return [beam1, beam2, beam3, tubewall1, tubewall2, tubewall3, parabolicmirror, flatmirror, lens_ocular, lens_eye, ocularwall1, ocularwall2, retina, info]
 

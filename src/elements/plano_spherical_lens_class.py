@@ -10,7 +10,7 @@ from utils.configuration_class import config
 
 
 class PlanoSphericalLensClass(glass_element_class.GlassElementClass):
-    def __init__(self, p0=np.array([0,0]), n0=np.array([1,0]), R=None, f=None, thickness=5*mm, diameter=10*mm, N=N_glass, plot_resolution=1, generate_reflections=False):
+    def __init__(self, p0=np.array([0,0]), n0=np.array([1,0]), R=None, f=None, thickness=5*mm, diameter=10*mm, N=N_glass, plot_resolution=1, generate_reflections=True):
         # Position p0 is the position at the center of the first surface
         # Front face radius R is positive for convex faces (bulging out, "fat")
         self.diameter  = diameter     # Diameter of the lens
@@ -43,6 +43,9 @@ class PlanoSphericalLensClass(glass_element_class.GlassElementClass):
         # TODO: Add check for collision with bottom straight pieces
         [pt_arc, t0_arc] = geometry.line_arc_intersections(C_arc=self.C, p_ends=self.p_corners[0:2], p_line=ray.p0, r_line=ray.r)
         [pt_line, t0_line, t1_line] = geometry.intersection_of_PR_line_with_PP_line(p00=ray.p0, r0=ray.r, p10=self.p_corners[2], p11=self.p_corners[3])
+        
+        if t1_line is not None and not (0 <= t1_line <= 1):
+            pt_line, t0_line, t1_line = None, None, None
 
         if t0_arc is not None and t0_line is None:   case = 0    # Intersection with front surface
         elif t0_arc is None and t0_line is not None: case = 1    # Intersection with flat back surface

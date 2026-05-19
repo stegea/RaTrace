@@ -4,11 +4,14 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import numpy as np
 from utils.configuration_class import config
-
+from display import imager_class
 
 PLOT_COLOR_BLACK = 'grey'
 MAX_NR_OF_SCATTERPOINTS_PLOTTED = 100000
 rng = np.random.default_rng()
+
+# Assign random values to the random_angle array once, to ensure that the same random angles are used for all polar plots, to avoid the points jumping around when switching between graph types
+random_angle = 2 * np.pi * np.random.random(MAX_NR_OF_SCATTERPOINTS_PLOTTED)
 
 
 class CanvasClass(FigureCanvasQTAgg):
@@ -87,75 +90,106 @@ class CanvasDisplayClass(FigureCanvasQTAgg):
         self.graph.cla()
         self.xlims, self.ylims = np.array([0, 1]),  np.array([0, 1])
 
-        if not display.impact_points_per_source:
+        # if not hasattr(display, 'impact_points') or display.impact_points is None:
+        if display.nr_of_IPs is None:
+            print('No impact points to plot on the display graph')
             return
 
-        if graph_type_ind == 0:
-            if len(display.cast_rays) <= MAX_NR_OF_SCATTERPOINTS_PLOTTED:
-                size_pts = 100/len(display.cast_rays)
-                self.graph.scatter(display.cast_rays_x, 0*display.cast_rays_x, s=size_pts, c=display.cast_rays_col)
-                self.xlims = np.array([0,display.length])
+        display_is_imager = isinstance(display, imager_class.ImagerClass)
+
+        size_pts = 100/np.power(display.nr_of_IPs, 0.3)
+        if config.getboolean('view', 'intensity_coded_colors'):
+            alpha    = 1/np.power(display.nr_of_IPs, 0.3)
+        else:
+            alpha    = 1
+        alpha = min(alpha*config.getfloat('view', 'intensity_scaler'), 1)
+
+        # TODO plot impact points in graph types 0 and 1 with intensity-coded colors
+        if graph_type_ind == 0:     
+            if display.nr_of_IPs <= MAX_NR_OF_SCATTERPOINTS_PLOTTED:
+                print(f'Scatterplot 1D: Plotting the impact points as points on the X-axis, with the Y-coordinate being 0')
+                self.graph.scatter(display.IP_pts_1D, np.zeros_like(display.IP_pts_1D), s=size_pts, c=display.IP_col, edgecolors=None, linewidths=0, alpha=alpha)
                 self.ylims = np.array([-1,1])
-                # self.graph.set_ylim(-1,1)
+                if self.zoom_on_centroid and display_is_imager and display.pulse_width is not None:
+                    self.xlims = display.COG_x_1D + 2 * display.pulse_width * np.array([-1, 1])
+                else:
+                    self.xlims = np.array([0, display.length])                    
                 self.graph.tick_params(axis='x', which='both', top=False, bottom=config.getboolean('view', 'show_axis_and_grid'))
                 self.graph.grid(config.getboolean('view', 'show_axis_and_grid'), which='both', axis='x')
                 self.graph.set_yticks([])
-        elif graph_type_ind == 1:
-            print('Hier pas aan begonnen. Hoe onderscheid maken tussen bronnen impact points? Bv. bij 2 bronnen, welke en hoe laten zien op display?')
-            if len(display.source_impact_points) <= MAX_NR_OF_SCATTERPOINTS_PLOTTED:
-                size_pts = 100 / len(display.cast_rays)
-                random_y_array = 0.5 + np.random.random(*display.cast_rays_x.shape)
-                self.graph.scatter(display.cast_rays_x, random_y_array, s=size_pts, c=display.cast_rays_col)
-                self.xlims = np.array([0, display.length])
+                self.graph.set_aspect('auto')
+
+        elif graph_type_ind == 1:   # Scatterplot 2D: Plot the impact points as points on the X-axis, but spread out randomly along the Y-axis, to better visualize the distribution of the impact points along the X-axis 
+            if display.nr_of_IPs <= MAX_NR_OF_SCATTERPOINTS_PLOTTED:
+                print(f'Scatterplot 2D: Plotting the impact points as points on the X-axis, but spread out randomly along the Y-axis')
+                random_y_array = 0.5 + np.random.random(size=display.IP_pts_1D.shape)
+                self.graph.scatter(display.IP_pts_1D, random_y_array, s=size_pts, c=display.IP_col, edgecolors=None, linewidths=0, alpha=alpha)
                 self.ylims = np.array([0, 2])
+                if self.zoom_on_centroid and display_is_imager and display.pulse_width is not None:
+                    self.xlims = display.COG_x_1D + 2 * display.pulse_width * np.array([-1, 1])
+                else:
+                    self.xlims = np.array([0, display.length])
                 self.graph.grid(config.getboolean('view', 'show_axis_and_grid'), which='both', axis='x')
                 self.graph.set_yticks([])
-        # elif graph_type_ind == 1:
-        #     if len(display.cast_rays) <= MAX_NR_OF_SCATTERPOINTS_PLOTTED:
-        #         size_pts = 100 / len(display.cast_rays)
-        #         random_y_array = 0.5 + np.random.random(*display.cast_rays_x.shape)
-        #         self.graph.scatter(display.cast_rays_x, random_y_array, s=size_pts, c=display.cast_rays_col)
-        #         self.xlims = np.array([0, display.length])
-        #         self.ylims = np.array([0, 2])
-        #         self.graph.grid(config.getboolean('view', 'show_axis_and_grid'), which='both', axis='x')
-        #         self.graph.set_yticks([])
-        elif graph_type_ind == 2:
-                if len(display.cast_rays) <= MAX_NR_OF_SCATTERPOINTS_PLOTTED:
-                    size_pts = 100 / len(display.cast_rays)
-                    random_angle = 2 * np.pi + np.random.random(*display.cast_rays_x.shape)
-                    x_polar = display.cast_rays_x * np.cos(random_angle)
-                    y_polar = display.cast_rays_x * np.sin(random_angle)
-                    self.graph.scatter(x_polar, y_polar, s=size_pts, c=display.cast_rays_col)
+                self.graph.set_aspect('auto')
+
+        elif graph_type_ind == 2:   # Polar plot: Plot the impact points on a polar plot, with the radius corresponding to the X-coordinate of the impact point and the angle being random, to spread out the points in a circular manner
+            if display.nr_of_IPs <= MAX_NR_OF_SCATTERPOINTS_PLOTTED:
+                print(f'Polar plot: Plotting the impact points on a polar plot')
+                for i_lightsource in range(display.nr_of_lightsources):
+                    i_of_IPs_for_lightsource = display.i_of_IPs_for_lightsource(i_lightsource)
+                    x_array = display.IP_pts_1D[i_of_IPs_for_lightsource]
+                    x0 = display.COG_x_1D if display_is_imager else np.median(x_array)
+                    x_polar = x0 + (x_array-x0) * np.cos(random_angle[range(x_array.shape[0])])
+                    y_polar =  0 + (x_array-x0) * np.sin(random_angle[range(x_array.shape[0])])
+                    self.graph.scatter(x_polar, y_polar, s=size_pts, c=display.IP_col[i_of_IPs_for_lightsource], edgecolors=None, linewidths=0, alpha=alpha)
+                if display_is_imager and display.pulse_width is not None:
+                    self.graph.plot(x0 + display.pulse_width/2 * np.cos(np.linspace(0, 2*np.pi, 360)), display.pulse_width/2 * np.sin(np.linspace(0, 2*np.pi, 360)), marker='none', color='black', linestyle='--', linewidth=1)
+                if self.zoom_on_centroid and display_is_imager and display.pulse_width is not None:
+                    self.xlims = x0 + 1 * display.pulse_width * np.array([-1, 1])
+                    self.ylims =  0 + 1 * display.pulse_width * np.array([-1, 1])
+                else:
                     self.xlims = [np.min(x_polar), np.max(x_polar)]
                     self.ylims = [np.min(y_polar), np.max(y_polar)]
-                    self.graph.grid(config.getboolean('view', 'show_axis_and_grid'), which='both', axis='x')
-        elif graph_type_ind == 3:
-            x_mm  = np.array([pixel.x for pixel in display.pixels])
-            x_ind = np.arange(display.number_of_pixels)
-            self.graph.plot(x_mm, display.intensity, color='blue', marker='.', linestyle='-', linewidth=1, markersize=4)
-            self.ylims = np.array([0, 1.1 * display.peak_intensity])
-            self.xlims = np.array([0, display.length])
-            self.graph.grid(config.getboolean('view', 'show_axis_and_grid'), which='both')
-        elif graph_type_ind == 4:
-            if self.greyscale_mode:
-                self.graph.imshow(display.image, cmap='gray', aspect='auto')
-            else:
-                self.graph.imshow(display.image, cmap='jet', aspect='auto')
-            self.graph.tick_params(axis='x', which='both', top=False, bottom=config.getboolean('view', 'show_axis_and_grid'))
-            self.ylims = np.array([0, 1.1 * display.peak_intensity])
-            if self.zoom_on_centroid and display.FWHM is not None:
-                self.xlims = display.COG_IMF + 3 * display.FWHM * np.array([-1, 1])
-            else:
-                self.xlims = np.array([0, display.number_of_pixels - 1])
-        elif graph_type_ind == 5:
-            if len(display.cast_rays) <= np.inf + MAX_NR_OF_SCATTERPOINTS_PLOTTED:
-                size_pts = 100 / np.sqrt(len(display.cast_rays))
-                self.graph.scatter(display.cast_rays_x, display.cast_rays_phase, s=size_pts, c=display.cast_rays_col)
-                self.graph.scatter(display.pixels_x + display.pixel_size/2, display.phase, s=10+0*size_pts, facecolor=(1,1,1,0), edgecolor=(0,0,0,1), marker='o')
-                self.xlims = np.array([0, display.length])
-                self.ylims = np.array([-np.pi, np.pi])
-                self.graph.tick_params(axis='x', which='both', top=False, bottom=config.getboolean('view', 'show_axis_and_grid'))
                 self.graph.grid(config.getboolean('view', 'show_axis_and_grid'), which='both', axis='x')
+                self.graph.set_aspect('equal', adjustable='datalim')
+
+        elif graph_type_ind == 3  and  display_is_imager:
+            print(f'Intensity plot 1D: Plotting the intensity of the pixels in a I-vs-X plot')
+            x_mm  = display.px_x0_1D
+            self.graph.plot(x_mm, display.intensity, color='blue', marker='.', linestyle='-', linewidth=1, markersize=4)
+            self.xlims = np.array([0, display.length])
+            self.ylims = np.array([0, 1.1 * display.peak_intensity])
+            self.graph.grid(config.getboolean('view', 'show_axis_and_grid'), which='both')
+            self.graph.plot(np.array([point[0] for point in display.pulse_pts]), np.array([point[1] for point in display.pulse_pts]), marker='o', markersize=10, markerfacecolor='black', markeredgecolor='none', linestyle='--', color='black', linewidth=1, label='FWHM points')
+            if self.zoom_on_centroid and display_is_imager and display.pulse_width is not None:
+                self.xlims = display.COG_x_1D + 2 * display.pulse_width * np.array([-1, 1])
+            else:
+                self.xlims = np.array([0, display.length])
+            self.graph.set_aspect('auto')
+
+        elif graph_type_ind == 4  and  display_is_imager:
+            print(f'# Intensity plot 2D: Plotting the intensity of the pixels in a 2D colormap plot')
+            cmap = 'gray' if self.greyscale_mode else 'jet'
+            self.graph.imshow(display.img_2D, cmap=cmap, aspect='auto', origin='lower', extent=[0, display.length, 0, display.img_2D.shape[0]], vmin=0, vmax=display.peak_intensity)
+            self.graph.tick_params(axis='x', which='both', top=False, bottom=config.getboolean('view', 'show_axis_and_grid'))
+            self.xlims = np.array([0, display.length])
+            self.ylims = np.array([0, display.img_2D.shape[0]])
+            if self.zoom_on_centroid and display_is_imager and display.pulse_width is not None:
+                self.xlims = display.COG_x_1D + 2 * display.pulse_width * np.array([-1, 1])
+            else:
+                self.xlims = np.array([0, display.length])
+            self.graph.set_aspect('auto')
+
+        # elif graph_type_ind == 5:   # Phase plot: Plot the phase of the pixels in a phase-vs-X plot
+        #     if len(display.cast_rays) <= np.inf + MAX_NR_OF_SCATTERPOINTS_PLOTTED:
+        #         size_pts = 100 / np.sqrt(len(display.cast_rays))
+        #         self.graph.scatter(display.cast_rays_x, display.cast_rays_phase, s=size_pts, c=display.cast_rays_col)
+        #         self.graph.scatter(display.pixels_x + display.pixel_size/2, display.phase, s=10+0*size_pts, facecolor=(1,1,1,0), edgecolor=(0,0,0,1), marker='o')
+        #         self.xlims = np.array([0, display.length])
+        #         self.ylims = np.array([-np.pi, np.pi])
+        #         self.graph.tick_params(axis='x', which='both', top=False, bottom=config.getboolean('view', 'show_axis_and_grid'))
+        #         self.graph.grid(config.getboolean('view', 'show_axis_and_grid'), which='both', axis='x')
 
         self.graph.set_xlim(self.xlims)
         self.graph.set_ylim(self.ylims)
