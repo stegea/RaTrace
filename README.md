@@ -116,34 +116,30 @@ python main_GUI.py
 The project is configured for Python 3.12. Dependencies are listed in `pyproject.toml`; `uv sync` also uses `uv.lock`.
 
 ### Running
-There are 4 ways to run RaTrace. Run these commands from the `src` folder so the paths in `config.ini` resolve correctly:
-
-```sh
-cd src
-```
+RaTrace can be used in a couple of ways: with or without a GUI, as a single instance, or in a looped environment. 4 example scripts are provided under /src, on how to use RaTrace in these 4 ways:
 
 1. The primary way to use RaTrace is with the GUI. This way most of the settings can be changed, and new scenes can be loaded:
 
 ```sh
-python main_GUI.py
+main_GUI.py
 ```
 
 2. With a GUI but automated and the possibility for taking screenshots. Each time a simulation in the loop is finished, the GUI closes and the next iteration starts.
 
 ```sh
-python main_GUI_in_loop.py
+main_GUI_in_loop.py
 ```
 
 3. Running simulations without a GUI, with the possibility to export ray data to a text file when the simulation is finished.
 
 ```sh
-python main_noGUI.py
+main_noGUI.py
 ```
 
 4. The same GUI-less approach, but running in a loop:
 
 ```sh
-python main_noGUI_in_loop.py
+main_noGUI_in_loop.py
 ```
 
 When using `uv`, prefix the same commands with `uv run`:
