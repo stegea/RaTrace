@@ -113,8 +113,8 @@ def alpha_from_N(N):
     return (N - 1) ** 2
 
 
-def generate_gaussian_pcs(FWHM=1*deg, verbose=False):   # Gaussian probability cumulative sum
-    if FWHM == 0:
+def generate_gaussian_pcs(FWHM, verbose=False):   # Gaussian probability cumulative sum
+    if FWHM == None or FWHM == 0:
         return ([], [])
 
     sigma = FWHM / (2 * np.sqrt(np.log(2)))

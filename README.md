@@ -280,11 +280,9 @@ The display tab is only enabled when there is a display or an imager present in 
 
 ---
 
-## Syntax
+## Miscellaneous
 
-### Miscellaneous
-
-#### Units
+### Units
 
 The standard units for calculations in RaTrace are <b>mm</b> and <b>radians</b>. For ease-of-use you can import and use other units from the utils.varia module in the following way:
 
@@ -294,7 +292,7 @@ wavelength = 660*nm  # Gets converted into mm
 angle = 30*deg       # Gets converted into radians
 ```
 
-#### Refractive index and material
+### Refractive index and material
 
 Refractive-index defaults and material helpers live in the material module:
 
@@ -325,13 +323,15 @@ lens = spherical_lens_class.SphericalLensClass(
 
 When `material` is provided, it takes precedence over `N`. This means `material='N-BK7'` will define the glass even if `N` is also passed. Internally, `N` and `material` are converted into a `GlassMaterial`; during ray tracing the material is evaluated at each ray wavelength, so chromatic rays can see different refractive indices.
 
-#### Colors
+### Colors
 
 Colors can be described in a number of ways: 
 * <b>(R,G,B,A)</b> : A 4-element tuple of 3 RGB values and a transparency (or alpha) value
 * <b>'red', 'green', 'blue', ... </b> : A string describing the color 
 * <b>'rainbow'</b> : The colors of the n initial rays are given by ordered n colors of the rainbow    
 * <b>'wavelength'</b> : The color of rays is determined by their wavelength
+
+## Elements
 
 ### Light sources
 
@@ -379,11 +379,11 @@ plane_source_class.PlaneSourceClass(p0, n0, diameter, angle, wavelength, intensi
 <i>Input parameters:</i>
 * <b>p0</b> (np.array | default=np.array([0,0])) : Position of the plane source
 * <b>n0</b> (np.array | default=np.array([1,0])) : Direction of the plane source 
-* <b>diameter</b> (float | default=10*mm) : Diameter, extent or size of the plane source
+* <b>diameter</b> (float | default=10*mm) : Diameter, extent or size of the plane source. For 'gaussian' intensity distribution, this represents the full width at 1/e² height of the Gaussian beam
 * <b>angle</b> (float | default=0*deg) : Angle by which the emitted rays are leaving the plane source, relative to n0
 * <b>wavelength</b> (float | default=660*nm) : Wavelength of the light rays 
 * <b>intensity</b> (float | default=1) : Intensity of the initial light rays
-* <b>intensity_distribution</b>  ('equidistant', 'random' | default='equidistant') : Intensity distribution of the rays along the light fan 
+* <b>intensity_distribution</b>  ('equidistant', 'gaussian', 'random' | default='equidistant') : Intensity distribution of the rays along the plane. 'equidistant' creates evenly spaced rays, 'gaussian' creates rays following a Gaussian distribution with width defined by diameter, 'random' creates randomly distributed rays
 * <b>plot_color</b> (color | default='wavelength'): Plot color of the light rays
 
 #### Diffuse plane source

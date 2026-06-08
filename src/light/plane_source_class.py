@@ -42,7 +42,21 @@ class PlaneSourceClass(light_class.LightSourceClass):
                 self.add_ray(ray)
 
         elif self.intensity_distribution == 'gaussian':
-            print('Parallel beam with Gaussian ray distribution is not yet implemented')
+            (positions, probability_cumsum) = varia.generate_gaussian_pcs(FWHM=self.diameter)
+            t_range_raw = varia.generate_gaussian_pcs(positions, probability_cumsum, nr_of_samples=N_rays, randomize=False)
+            t_range_raw = t_range_raw if N_rays>1 else np.array([0])
+            
+            # Normalize to [-1, 1] range to match pattern of other distributions
+            max_val = np.max(np.abs(t_range_raw)) if len(t_range_raw) > 0 else 1
+            t_range = t_range_raw / max_val if max_val > 0 else np.zeros_like(t_range_raw)
+            
+            for ind in range(len(t_range)):
+                p0 = self.p0 + self.r * self.diameter/2 * t_range[ind]
+                intensity = self.intensity/N_rays
+                col = cols[round(ind / max([(self.nr_of_original_rays - 1),1]) * (len(cols) - 1))]
+                r = geometry.rotate_direction_over_angle(self.n0, self.angle)
+                ray = light_class.RayClass(p0=p0, r=r, intensity=intensity, wavelength=self.wavelength, N=N_air, ray_parent=None, source_element=self, lightsource_ID=self.ID, plot_color=col)
+                self.add_ray(ray)
 
         elif self.intensity_distribution == 'random':
             t_range = np.random.rand(N_rays) * 2 - 1
