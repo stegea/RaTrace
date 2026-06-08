@@ -1,18 +1,22 @@
 import numpy as np
 from utils.varia import mm, X, Y
 from utils import optics
-from utils.optics import N_air, N_glass
+from utils import material as material_utils
+from utils.material import N_air, N_glass
+from utils import varia
 from utils import geometry
 from elements import element_class
 from utils.configuration_class import config
 from gui import canvas_class
 import matplotlib.pyplot as plt
 
+# The refractive index of the medium in which the rays propagate
+N_medium = N_air
 
 class GlassElementClass(element_class.ElementClass):
-    def __init__(self, p0, n0, pts, N=N_glass, generate_reflections=True, is_active=True, is_visible=True):
+    def __init__(self, p0, n0, pts, N=N_glass, material=None, generate_reflections=True, is_active=True, is_visible=True):
 
-        self.N = N
+        self.N = material_utils.create_glass_material(N=N, material=material)
         self.generate_reflections = generate_reflections
         # self.blur_angle = blur_angle
         # self.nr_of_secondary_rays = nr_of_secondary_rays
@@ -30,11 +34,11 @@ class GlassElementClass(element_class.ElementClass):
         if np.dot(ray.r, self.n_coll)<0:
             No = self.N         # The element normal points towards the ray, meaning the ray enters the element, thus No=N
         else:
-            No = N_air          # The element normal points away from the ray, meaning the ray leaves the element, thus No=N_air
+            No = N_medium          # The element normal points away from the ray, meaning the ray leaves the element, thus No=N_air
 
         # Calculate dispersion
-        Ni = optics.calculate_refraction_index(ray.N, ray.wavelength)
-        No = optics.calculate_refraction_index(No, ray.wavelength)
+        Ni = material_utils.calculate_refraction_index(ray.N, ray.wavelength)
+        No = material_utils.calculate_refraction_index(No, ray.wavelength)
 
         # Calculate both the refracted and reflected rays, if enabled for that element and generating reflections are enabled overall.
         rays_new = optics.refract_and_reflect_ray(ray, self.n_coll, Ni=Ni, No=No, element_generates_reflection=self.generate_reflections)
@@ -77,13 +81,13 @@ class GlassElementClass(element_class.ElementClass):
 
 
 class FresnelPrismClass(GlassElementClass):
-    def __init__(self, p0, pitch, angle, thickness, length, N, is_active=True):
+    def __init__(self, p0, pitch, angle, thickness, length, N, material=None, is_active=True):
         self.nr_of_lenslets = int(np.ceil(length/pitch))
         self.pitch = pitch
         self.thickness = thickness
         self.angle = angle
         self.length = length
-        self.N = N
+        self.N = material_utils.create_glass_material(N=N, material=material)
         
         pts = np.empty((0,2))
         # pts = np.append(pts, [p0[X]+length/2], axis=0)
@@ -96,24 +100,24 @@ class FresnelPrismClass(GlassElementClass):
             pts = np.append(pts, [pts[1] + p2], axis=0)
         # pts = np.append(pts, [np.array([p2[X],0])], axis=0)
         
-        super().__init__(p0, pts, N=N, is_active=is_active)
+        super().__init__(p0=p0, n0=np.array([0, -1]), pts=pts, N=self.N, is_active=is_active)
         self.name = 'fresnell prism'
 
     def plot(self, graph):
         if self.is_visible:
-            poly = plt.Polygon(self.pts, closed=True, facecolor='cyan', edgecolor='blue', linewidth=3, alpha=geometry.alpha_from_N(self.N), zorder=5)
+            poly = plt.Polygon(self.pts, closed=True, facecolor='cyan', edgecolor='blue', linewidth=3, alpha=varia.alpha_from_N(self.N), zorder=5)
             graph.add_patch(poly)
             if config.getboolean('view', 'show_elements_properties'):
                 canvas_class.plot_normals(graph, self)
 
 
 class MicroLensArray(GlassElementClass):
-    def __init__(self, p0, thickness, pitch, peaktopeak, shape, length, N, is_active=True):
+    def __init__(self, p0, thickness, pitch, peaktopeak, shape, length, N, material=None, is_active=True):
         self.thickness = thickness
         self.pitch = pitch
         self.peaktopeak = peaktopeak
         self.length = length
-        self.N = N
+        self.N = material_utils.create_glass_material(N=N, material=material)
         self.is_active = is_active
         self.shape = shape
         self.nr_of_samples_per_pitch = 1000
@@ -153,7 +157,7 @@ class MicroLensArray(GlassElementClass):
         else:
             print('Microlens shape not yet defined')
 
-        super().__init__(p0, pts, N=N, is_active=is_active)
+        super().__init__(p0=p0, n0=np.array([0, 1]), pts=pts, N=self.N, is_active=is_active)
         self.name = 'microlens array'
 
     def __str__(self):
@@ -161,7 +165,7 @@ class MicroLensArray(GlassElementClass):
         return txt
 
     def plot(self, graph):
-        poly = plt.Polygon(self.pts, closed=True, facecolor='cyan', alpha=geometry.alpha_from_N(self.N), zorder=5)
+        poly = plt.Polygon(self.pts, closed=True, facecolor='cyan', alpha=varia.alpha_from_N(self.N), zorder=5)
         graph.add_patch(poly)
         if config.getboolean('view', 'show_elements_properties'):
             canvas_class.plot_normals(graph, self)

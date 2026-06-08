@@ -3,17 +3,18 @@ from utils.configuration_class import config
 import numpy as np
 from utils.varia import mm, deg
 from utils import varia
-from utils.optics import N_glass
+from utils.material import N_glass
+from utils import material as material_utils
 from utils import geometry
 from elements import glass_element_class
 import matplotlib.pyplot as plt
 
 
 class GlassPrismIsoscelesClass(glass_element_class.GlassElementClass):
-    def __init__(self, p0=np.array([0,0]), n0=np.array([1,1]), angle=90*deg, length=10*mm, N=N_glass, generate_reflections=True, is_active=True, is_visible=True):
+    def __init__(self, p0=np.array([0,0]), n0=np.array([1,1]), angle=90*deg, length=10*mm, N=N_glass, material=None, generate_reflections=True, is_active=True, is_visible=True):
         self.angle = angle
         self.length = length
-        self.N = N
+        self.N = material_utils.create_glass_material(N=N, material=material)
 
         n0 = geometry.normalize(n0)
         r = geometry.orientation_from_normal(n0)
@@ -22,7 +23,7 @@ class GlassPrismIsoscelesClass(glass_element_class.GlassElementClass):
         pts = np.append(pts, [p0 - n0*length/2 * np.tan((180*deg-angle)/2)], axis=0)
         pts = np.append(pts, [p0 - r *length/2],                                  axis=0)
 
-        super().__init__(p0=p0, n0=n0, pts=pts, N=N, generate_reflections=generate_reflections, is_active=is_active, is_visible=is_visible)
+        super().__init__(p0=p0, n0=n0, pts=pts, N=self.N, generate_reflections=generate_reflections, is_active=is_active, is_visible=is_visible)
         self.name = 'Isosceles prism'
 
     def __str__(self):
@@ -40,10 +41,10 @@ class GlassPrismIsoscelesClass(glass_element_class.GlassElementClass):
             #     canvas_class.plot_normals(graph, self)
 
 class GlassPrismRectangularClass(glass_element_class.GlassElementClass):
-    def __init__(self, p0=np.array([0,0]), n0=np.array([0,-1]), angle=45*deg, length=10*mm, N=N_glass, generate_reflections=False, is_active=True, is_visible=True):
+    def __init__(self, p0=np.array([0,0]), n0=np.array([0,-1]), angle=45*deg, length=10*mm, N=N_glass, material=None, generate_reflections=False, is_active=True, is_visible=True):
         self.angle = angle
         self.length = length
-        self.N = N
+        self.N = material_utils.create_glass_material(N=N, material=material)
 
         n0 = geometry.normalize(n0)
         r = geometry.orientation_from_normal(n0)
@@ -52,7 +53,7 @@ class GlassPrismRectangularClass(glass_element_class.GlassElementClass):
         pts = np.append(pts, [p0 - n0 * length * np.tan(90*deg-angle)], axis=0)
         pts = np.append(pts, [p0 - r *length],                          axis=0)
 
-        super().__init__(p0=p0, n0=n0, pts=pts, N=N, generate_reflections=generate_reflections, is_active=is_active, is_visible=is_visible)
+        super().__init__(p0=p0, n0=n0, pts=pts, N=self.N, generate_reflections=generate_reflections, is_active=is_active, is_visible=is_visible)
         self.name = 'Rectangular prism'
 
     def __str__(self):

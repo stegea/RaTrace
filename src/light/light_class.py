@@ -4,7 +4,7 @@ from PyQt5 import QtWidgets
 from utils import geometry
 from utils.varia import nm, deg, X, Y
 from utils import varia
-from utils.optics import N_air
+from utils.material import N_air
 from utils.configuration_class import config
 
 

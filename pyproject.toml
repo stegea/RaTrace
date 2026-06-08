@@ -1,7 +1,7 @@
 [project]
 name = "ratrace"
 version = "0.1.0"
-description = "Add your description here"
+description = "A 2D raytracer with a easy-to-use graphical user interface, written in Python"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

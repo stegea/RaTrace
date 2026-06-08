@@ -2,7 +2,7 @@ import numpy as np
 from utils import varia
 from utils.varia import mm, deg, X, Y
 from utils import optics
-from utils.optics import N_glass
+from utils.material import N_glass
 from utils import geometry
 from light import light_class
 from elements import glass_element_class
@@ -12,7 +12,7 @@ RED, WHITE = '\033[31m', '\033[0m'
 
 
 class IdealThinLensClass(glass_element_class.GlassElementClass):
-    def __init__(self, p0=np.array([10,0]), n0=np.array([-1,0]), f=100*mm, diameter=10*mm, N=N_glass):
+    def __init__(self, p0=np.array([10,0]), n0=np.array([-1,0]), f=100*mm, diameter=10*mm, N=N_glass, material=None):
         self.diameter  = diameter     # Diameter of the lens
         self.f = f
 
@@ -20,7 +20,7 @@ class IdealThinLensClass(glass_element_class.GlassElementClass):
         pts = geometry.points_from_position_direction_length(p0=p0, r=self.r, L=self.diameter, symmetric=True)
 
         # Initialise the GlassElementsClass instance
-        super().__init__(p0=p0, n0=n0,  N=N, pts=pts, is_active=True, is_visible=True)
+        super().__init__(p0=p0, n0=n0,  N=N, material=material, pts=pts, is_active=True, is_visible=True)
         self.name = 'Ideal thin lens'
 
     def check_collision(self, ray):

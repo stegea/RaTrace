@@ -1,5 +1,5 @@
 from utils.varia import mm, nm
-from utils.optics import N_glass
+from utils.material import N_glass
 from light import plane_source_class
 from elements import spherical_lens_class, black_plate_class, flat_mirror_class, parabolic_mirror_class
 from display import display_class

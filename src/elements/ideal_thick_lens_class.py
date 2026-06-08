@@ -1,8 +1,9 @@
 import numpy as np
 from utils.varia import mm, deg
-from utils.optics import N_glass
+from utils.material import N_glass
 from utils import varia
 from utils import optics
+from utils import material as material_utils
 from utils import geometry
 from light import light_class
 from elements import element_class
@@ -13,14 +14,14 @@ from gui import canvas_class
 
 # ToDo rewrite to new structure, inherit from glass_element_class too
 class ThickLensClass(element_class.ElementClass):
-    def __init__(self, p0=np.array([0,0]), f=100*mm, D=10*mm, N=N_glass, p1=None, n0=None, length=None):
+    def __init__(self, p0=np.array([0,0]), f=100*mm, D=10*mm, N=N_glass, material=None, p1=None, n0=None, length=None):
         self.p0 = p0    # Mid-point on the front lens surface
         self.p1 = p1    # Mid-point on the back lens surface
         self.length = length
         self.n0 = n0     # Towards mid-FOV
         self.f = f
         self.D = D
-        self.N = N
+        self.N = material_utils.create_glass_material(N=N, material=material)
 
         # The secondary principal point can be given explicitly, then the length and principal normal can be calculated from that.
         # OR the length of the lens is given, as well as the principal normal, then p1 is calculated
@@ -90,7 +91,7 @@ class ThickLensClass(element_class.ElementClass):
 
         # Create one new (passive, non-active) ray that propagates between the principle planes
         if self.length>0:
-            propagating_ray = light_class.RayClass(p0=ray.p1, r=-self.n_coll, intensity=ray.intensity, wavelength=ray.wavelength, ray_parent=ray, N=self.N, source_element=self, is_active=False, plot_color=ray.plot_color)
+            propagating_ray = light_class.RayClass(p0=ray.p1, r=-self.n_coll, intensity=ray.intensity, wavelength=ray.wavelength, ray_parent=ray, N=material_utils.calculate_refraction_index(self.N, ray.wavelength), source_element=self, is_active=False, plot_color=ray.plot_color)
             propagating_ray.p1 = ray.p1 - self.length * self.n_coll
             propagating_ray.length = self.length
             new_rays.append(propagating_ray)

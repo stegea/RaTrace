@@ -66,7 +66,7 @@ class DisplayClass(element_class.ElementClass):
         self.IP_lightsource_ID  = np.array([ray.lightsource_ID               for ray in self.cast_rays])
 
         self.nr_of_IPs          = len(self.IP_pts_1D)
-        self.nr_of_lightsources = np.max(self.IP_lightsource_ID)+1
+        self.nr_of_lightsources = 0   if   (self.nr_of_IPs == 0)   else   max(self.IP_lightsource_ID)+1
 
         print('End of processing cast rays on the display. Number of impact points: ', self.nr_of_IPs)
 

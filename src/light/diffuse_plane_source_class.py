@@ -2,7 +2,7 @@ import numpy as np
 from light import light_class
 from utils import varia
 from utils.varia import mm, µm, nm, deg, X, Y
-from utils.optics import N_air, N_glass
+from utils.material import N_air, N_glass
 from utils import geometry
 
 

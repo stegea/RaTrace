@@ -1,12 +1,8 @@
 import numpy as np
-from utils.varia import mm, µm, X, Y, deg
+
+from utils import material
+from utils.varia import mm, nm, X, Y, deg
 from utils.configuration_class import config
-
-global N_glass, N_air
-N_air   = 1.00
-N_glass = 1.50
-N_water = 1.33
-
 
 
 def calculate_image_distance(object_distance, focal_length):
@@ -45,7 +41,7 @@ def refract_and_reflect_ray(ray, n_coll, Ni, No, element_generates_reflection=Fa
         T = 1
 
     # When there is no total reflection, there is refraction too
-    if not total_reflection:   
+    if not total_reflection:
         ray_refracted = light_class.RayClass(p0=ray.p1, r=r_refracted, intensity=T * ray.intensity, wavelength=ray.wavelength, ray_parent=ray, N=No, plot_color=ray.plot_color, is_active=True, is_visible=True)
         rays_new.append(ray_refracted)
 
@@ -104,7 +100,7 @@ def refract_ray_on_ideal_lens(p0, n0, f, p, r, p_coll):
         p_img = p0 + v * n_prop  # "Image point" on the optical axis
         ro = geometry.normalize(p_img - p_coll)  # The outgoing ray is along the line between the ray-lens intsersection point p_coll and the image point p_img
     else:   # The general case
-        t = np.dot(p0 - p, r0) / np.dot(r, r0)  # The ray p+t*r intersects the optical axis when (p+t*r - p0)·r0 = 0. Solving for t gives the intersection point.
+        t = np.dot(p0 - p, r0) / np.dot(r, r0)  # The ray p+t*r intersects the optical axis when (p+t*r - p0)Â·r0 = 0. Solving for t gives the intersection point.
         p_obj = p + t * r  # "Object point" on the optical axis
 
         obj_vec = p0 - p_obj  # The vector between o and p0 along the optical axis
@@ -123,10 +119,13 @@ def refract_ray_on_ideal_lens(p0, n0, f, p, r, p_coll):
     return ro
 
 
-def derive_lens_properties(N=N_glass, f=None, R0=None, R1=None, T=None):
+def derive_lens_properties(N=material.N_glass, f=None, R0=None, R1=None, T=None):
     # Using the lensmaker's equation: https://en.wikipedia.org/wiki/Lens#Lensmaker.27s_equation
-    N = N[0] if isinstance(N, list) else N
-    if f is not None:
+    N = material.nominal_refraction_index(N)
+    if R0 is not None and R1 is not None:
+        f = lensmakers_equation(N, R0, R1, T)
+        print(f'Lens parameters derived: R0={R0}, R1={R1} --> f={f}')
+    elif f is not None:
         # If only f is given, consider a symmetric lens and thus R0 and R1 are equal
         # Reformulate the lensmaker's equation with R0=-R1=R and solve the quadratic equation for R
         A = 1
@@ -141,9 +140,6 @@ def derive_lens_properties(N=N_glass, f=None, R0=None, R1=None, T=None):
         R1 = -R
         f_check = lensmakers_equation(N, R0, R1, T)
         print(f'Lens parameters derived: f={f:0.2f}mm --> R0={R0:0.2f}mm, R1={R1:0.2f}mm --> f_check={f_check:0.2f}mm')
-    elif R0 is not None and R1 is not None:
-        f = lensmakers_equation(N, R0, R1, T)
-        print(f'Lens parameters derived: R0={R0}, R1={R1} --> f={f}')
     else:
         print(f'Error: Lens definition is incorrect, either define f OR R0 and R1: f={f}, R0={R0}, R1={R1}')
         return [None, None, None]
@@ -154,15 +150,15 @@ def derive_lens_properties(N=N_glass, f=None, R0=None, R1=None, T=None):
     return [f, R0, R1, H0, H1]
 
 
-def derive_planosphericallens_properties(N=N_glass, f=None, R=None, T=None):
+def derive_planosphericallens_properties(N=material.N_glass, f=None, R=None, T=None):
     # Using the lensmaker's equation: https://en.wikipedia.org/wiki/Lens#Lensmaker.27s_equation
-    N = N[0] if isinstance(N, list) else N
-    if f is not None:
-        R = f*(N-1)
-        print(f'Plano-convex lens parameters derived: f={f:0.2f}mm --> R={R:0.2f}mm')
-    elif R is not None:
+    N = material.nominal_refraction_index(N)
+    if R is not None:
         f = R/(N-1)
         print(f'Plano-convex lens parameters derived: R={R:0.2f}mm --> f={f:0.2f}mm')
+    elif f is not None:
+        R = f*(N-1)
+        print(f'Plano-convex lens parameters derived: f={f:0.2f}mm --> R={R:0.2f}mm')
     else:
         print(f'Error: Plano-convex lens definition is incorrect, either define f OR R: f={f}, R={R}')
         return [None, None, None]
@@ -177,17 +173,6 @@ def lensmakers_equation(N,R0,R1,T):
     one_over_f = (N - 1) * (1 / R0 - 1 / R1 + (N - 1) * T / (N * R0 * R1))
     f = 1 / one_over_f
     return f
-
-
-def calculate_refraction_index(N, wavelength):
-    # Reference: https://en.wikipedia.org/wiki/Cauchy%27s_equation
-    # Simulation units are in mm, while B-coefficients  are in µm²
-    wavelength_mu = wavelength/µm*mm
-    if isinstance(N,list):
-        A, B = N[0], N[1]
-    else:
-        A, B = N, 0
-    return A + B/wavelength_mu**2
 
 
 # Lens with p0 at its first surface
@@ -268,5 +253,63 @@ def GLB_calculate_peak_intensity_at_z(w0, ZR, intensity_total, z=0*mm):  # GLB =
     return intensity_peak
 
 
+def calculate_diffracted_orientations(n0, r, wavelength, order, pitch, isreflective):
+    from utils import geometry
+    # n0-->grating, p-->ray, r-->ray
+    n0 = geometry.normalize(n0)
+    r  = geometry.normalize(r)
+    if not isinstance(order, (list, tuple)):
+        order = [order]
+    TR_sign = -1 if isreflective else 1
+
+    # Incoming ray points to the grating, but for calculating the angle with the nomal, one should reverse r
+    cos_theta_i = np.dot(n0,-r)
+    n0 = n0  if  cos_theta_i>=0  else  -n0  # Assure that n0 is aligned with r
+
+    # the following angle_between_vectors(a,b) method returns a positive angle FROM b TO a, if it goes CCW.
+    # On the other hand, the grating equation is defined such that the angle is the zenith angle, i.e. from n0 to r
+    # Theta should thus be negated
+    theta_i = -geometry.angle_between_vectors(n0, -r)
+
+    print(f'r={r}, n0={n0}, cos_theta_i={cos_theta_i:0.3f}, theta_i={theta_i/deg:0.2f}deg, reflective={isreflective}')
+
+    ro = []
+    for m in order:
+        if isreflective:
+            sin_theta_o = m * wavelength / pitch + np.sin(theta_i)  # Grating equation
+            if abs(sin_theta_o) > 1:
+                print(f"invalid diffraction order, sin(theta_o) is larger than 1 in magnitude: {sin_theta_o:0.3f}")
+                ro.append(np.array([np.nan, np.nan]))
+            else:
+                theta_o =  np.arcsin(sin_theta_o)
+                deflection_angle = (180*deg - 2*theta_i) + (theta_o - theta_i)  # first a reflection, then a deflection by the grating
+                r_diffracted = geometry.rotate_direction_over_angle(r, deflection_angle)  # Rotate the incoming ray by the difference in angles
+                ro.append(geometry.normalize(r_diffracted))
+                print(f' m={m}, sin_theta_o={sin_theta_o:0.3f}, theta_o={theta_o/deg:0.2f}deg, deflection_angle={deflection_angle/deg:0.2f}deg, r_diffracted={r_diffracted}')
+        else:
+            sin_theta_o = m * wavelength / pitch + np.sin(theta_i)  # Grating equation
+            if abs(sin_theta_o) > 1:
+                print(f"invalid diffraction order, sin(theta_o) is larger than 1 in magnitude: {sin_theta_o:0.3f}")
+                ro.append(np.array([np.nan, np.nan]))
+            else:
+                theta_o =  np.arcsin(sin_theta_o)
+                deflection_angle = theta_o - theta_i
+                r_diffracted = geometry.rotate_direction_over_angle(r, deflection_angle)  # Rotate the incoming ray by the difference in angles
+                ro.append(geometry.normalize(r_diffracted))
+                print(f' m={m}, sin_theta_o={sin_theta_o:0.3f}, theta_o={theta_o/deg:0.2f}deg, deflection_angle={deflection_angle/deg:0.2f}deg, r_diffracted={r_diffracted}')
+
+    print('')
+    return ro
+
+
+
 if __name__ == '__main__':
-    [] = calculate_reflectance_and_transmittance_coefficients(1.5, 1.0, 45*deg)
+    from utils.varia import Âµm
+
+    order = -1
+
+    # ro = calculate_diffracted_orientations(n0=np.array([1,0]), r=np.array([1, 0.5]), wavelength=530*nm, order=order, pitch=10*Âµm, isreflective=False)
+    # ro = calculate_diffracted_orientations(n0=np.array([1,0]), r=np.array([1,-0.5]), wavelength=530*nm, order=order, pitch=10*Âµm, isreflective=False)
+
+    ro = calculate_diffracted_orientations(n0=np.array([1,0]), r=np.array([1, 0.5]), wavelength=530*nm, order=order, pitch=10*Âµm, isreflective=True)
+    ro = calculate_diffracted_orientations(n0=np.array([1,0]), r=np.array([1,-0.5]), wavelength=530*nm, order=order, pitch=10*Âµm, isreflective=True)

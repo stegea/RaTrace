@@ -3,19 +3,19 @@ from utils.configuration_class import config
 import numpy as np
 from utils import varia
 from utils.varia import mm
-from utils.optics import N_glass
+from utils.material import N_glass
 from utils import geometry
 from elements import glass_element_class
 import matplotlib.pyplot as plt
 
 
 class GlassParallelPlateClass(glass_element_class.GlassElementClass):
-    def __init__(self, p0=np.array([0,0]), n0=np.array([-1,0]), thickness=1*mm, length=10*mm, N=N_glass, generate_reflections=True, is_active=True, is_visible=True):
+    def __init__(self, p0=np.array([0,0]), n0=np.array([-1,0]), thickness=1*mm, length=10*mm, N=N_glass, material=None, generate_reflections=True, is_active=True, is_visible=True):
         self.thickness = thickness
         self.length = length
 
         pts = geometry.construct_plate(p0=p0, n=n0, thickness=thickness, length=length)
-        super().__init__(p0=p0, n0=n0, pts=pts, N=N, is_active=is_active, is_visible=is_visible, generate_reflections=generate_reflections)
+        super().__init__(p0=p0, n0=n0, pts=pts, N=N, material=material, is_active=is_active, is_visible=is_visible, generate_reflections=generate_reflections)
         self.name = 'glass parallel plate'
 
     def __str__(self):

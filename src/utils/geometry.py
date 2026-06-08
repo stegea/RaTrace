@@ -359,14 +359,17 @@ def move_to(pts, p0, p1):
     return pts_new
 
 
-def construct_plate(p0, n, thickness, length):
+def construct_plate(p0, n, length, thickness=0):
     n = normalize(n)
     r = orientation_from_normal(n)
     pts_corners = points_from_position_direction_length(p0=p0, r=r, L=length, sort_left_to_right=False, symmetric=True)
     pts = np.empty((0,2))
     pts = np.append(pts, [pts_corners[0]], axis=0)
     pts = np.append(pts, [pts_corners[1]], axis=0)
-    pts = np.append(pts, [pts_corners[1]-n*thickness], axis=0)
-    pts = np.append(pts, [pts_corners[0]-n*thickness], axis=0)
+    # If the plate has no thickness, then this represents just a line, and the 2 points are sufficient. 
+    # If the plate has thickness, then we need to add the 2 additional points at the back of the plate, which are just the 2 front points moved by the normal vector multiplied by the thickness.
+    if thickness > 0:
+        pts = np.append(pts, [pts_corners[1]-n*thickness], axis=0)
+        pts = np.append(pts, [pts_corners[0]-n*thickness], axis=0)
     return pts
 

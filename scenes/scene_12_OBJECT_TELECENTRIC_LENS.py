@@ -1,5 +1,5 @@
 from utils.varia import mm, nm, deg
-from utils.optics import N_glass
+from utils.material import N_glass
 from light import point_source_class
 from elements import black_plate_class, spherical_lens_class, aperture_class
 

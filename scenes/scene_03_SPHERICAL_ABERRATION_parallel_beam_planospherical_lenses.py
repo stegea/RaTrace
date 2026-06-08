@@ -1,5 +1,5 @@
 from utils.varia import mm, nm
-from utils.optics import N_glass
+from utils.material import N_glass
 from light import plane_source_class
 from elements import plano_spherical_lens_class, black_plate_class
 
@@ -22,10 +22,10 @@ from elements import plano_spherical_lens_class, black_plate_class
 
 
 def load_scene():
-    beam0 = plane_source_class.PlaneSourceClass(p0=[5, 6], n0=[1,0], diameter=8*mm, wavelength=450*nm, intensity_distribution='equidistant', plot_color=(1,1,0,0.5))
+    beam0 = plane_source_class.PlaneSourceClass(p0=[5, 6], n0=[1,0], diameter=8*mm, wavelength=450*nm, intensity_distribution='equidistant', plot_color=(1,0,0,0.5))
     lens0 = plano_spherical_lens_class.PlanoSphericalLensClass(p0=[10, 6], n0=[-1,0], f=15*mm, diameter=10*mm, thickness=3*mm, N=N_glass, plot_resolution=0.1)
 
-    beam1 = plane_source_class.PlaneSourceClass(p0=[5, -6], n0=[1,0], diameter=8*mm, wavelength=450*nm, intensity_distribution='equidistant', plot_color=(1,1,0,0.5))
+    beam1 = plane_source_class.PlaneSourceClass(p0=[5, -6], n0=[1,0], diameter=8*mm, wavelength=450*nm, intensity_distribution='equidistant', plot_color=(1,0,0,0.5))
     lens1 = plano_spherical_lens_class.PlanoSphericalLensClass(p0=[10+3, -6], n0=[1,0], f=15*mm, diameter=10*mm, thickness=3*mm, N=N_glass, plot_resolution=0.1)
     
     # These beam dumps catch the rays exiting the lens on the right and caustic rays at the left, making them visible in the plot

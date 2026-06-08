@@ -108,8 +108,9 @@ class CanvasDisplayClass(FigureCanvasQTAgg):
         if graph_type_ind == 0:     
             if display.nr_of_IPs <= MAX_NR_OF_SCATTERPOINTS_PLOTTED:
                 print(f'Scatterplot 1D: Plotting the impact points as points on the X-axis, with the Y-coordinate being 0')
-                self.graph.scatter(display.IP_pts_1D, np.zeros_like(display.IP_pts_1D), s=size_pts, c=display.IP_col, edgecolors=None, linewidths=0, alpha=alpha)
-                self.ylims = np.array([-1,1])
+                lightsource_separation = 0.1
+                self.graph.scatter(display.IP_pts_1D, np.zeros_like(display.IP_pts_1D) + lightsource_separation * display.IP_lightsource_ID, s=size_pts, c=display.IP_col, edgecolors=None, linewidths=0, alpha=alpha)
+                self.ylims = display.nr_of_lightsources * (lightsource_separation-1) * np.array([-0.5,1.0])
                 if self.zoom_on_centroid and display_is_imager and display.pulse_width is not None:
                     self.xlims = display.COG_x_1D + 2 * display.pulse_width * np.array([-1, 1])
                 else:

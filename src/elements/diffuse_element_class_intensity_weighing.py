@@ -1,6 +1,6 @@
 import numpy as np
 from utils.varia import deg, X, Y
-from utils.optics import N_air
+from utils.material import N_air
 from utils import geometry
 from elements import element_class
 from light import light_class

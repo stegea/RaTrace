@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from utils.varia import nm, deg, X, Y
-from utils.optics import N_air
+from utils.material import N_air
 
 
 class FilterClass:

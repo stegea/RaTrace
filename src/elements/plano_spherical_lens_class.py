@@ -2,7 +2,8 @@ import numpy as np
 from utils import varia
 from utils.varia import mm, X, Y
 from utils import optics
-from utils.optics import N_glass
+from utils import material as material_utils
+from utils.material import N_glass
 from utils import geometry
 from elements import glass_element_class
 import matplotlib.pyplot as plt
@@ -10,21 +11,22 @@ from utils.configuration_class import config
 
 
 class PlanoSphericalLensClass(glass_element_class.GlassElementClass):
-    def __init__(self, p0=np.array([0,0]), n0=np.array([1,0]), R=None, f=None, thickness=5*mm, diameter=10*mm, N=N_glass, plot_resolution=1, generate_reflections=True):
+    def __init__(self, p0=np.array([0,0]), n0=np.array([1,0]), R=None, f=None, thickness=5*mm, diameter=10*mm, N=N_glass, material=None, plot_resolution=1, generate_reflections=True):
         # Position p0 is the position at the center of the first surface
         # Front face radius R is positive for convex faces (bulging out, "fat")
+        self.N = material_utils.create_glass_material(N=N, material=material)
         self.diameter  = diameter     # Diameter of the lens
         self.thickness = thickness  # Width of the lens along its optical axis
         self.plot_resolution = plot_resolution    # Inter-point distance for plotting the lens
 
-        # If f is given, calculate R (also if they are given), else calculate f from R
-        [self.f, self.R, self.H] = optics.derive_planosphericallens_properties(N=N, f=f, R=R, T=self.thickness)
+        # If R is given, calculate f from it; otherwise calculate R from f.
+        [self.f, self.R, self.H] = optics.derive_planosphericallens_properties(N=self.N, f=f, R=R, T=self.thickness)
 
         # Construct the outline of the lens in 0° orientation, rotate later
         [pts, self.p1, self.C, self.p_corners] = optics.construct_planosphericallens(p0=p0, R=self.R, T=self.thickness, D=self.diameter, resolution=self.plot_resolution)
 
         # Initialise the GlassElementsClass instance
-        super().__init__(p0=p0, n0=n0,  N=N, pts=pts, is_active=True, is_visible=True, generate_reflections=generate_reflections)
+        super().__init__(p0=p0, n0=n0,  N=self.N, pts=pts, is_active=True, is_visible=True, generate_reflections=generate_reflections)
         self.name = 'Plano-convex lens'
 
         # Rotate the lens to align with the normal vector n0

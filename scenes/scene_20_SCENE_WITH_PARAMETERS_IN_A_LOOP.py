@@ -1,6 +1,6 @@
 import numpy as np
 from utils.varia import mm,nm, deg
-from utils.optics import N_glass
+from utils.material import N_glass
 from light import point_source_class
 from elements import ideal_thin_lens_class, black_plate_class
 

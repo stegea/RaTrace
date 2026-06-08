@@ -174,7 +174,7 @@ First, all the modules used in the scene are imported. Next the ```load_scene```
 ```
 import numpy as np
 from utils.varia import mm,nm, deg
-from utils.optics import N_glass
+from utils.material import N_glass
 from light import point_source_class
 from elements import ideal_thin_lens_class, black_plate_class
 
@@ -298,18 +298,36 @@ wavelength = 660*nm  # Gets converted into mm
 angle = 30*deg       # Gets converted into radians
 ```
 
-#### Refractive index
+#### Refractive index and material
 
-Refractive indices can be either imported from the optics module, or self defined.
+Refractive-index defaults and material helpers live in the material module:
 
 ```
-from utils.optics import N_air, N_glass
+from utils.material import N_air, N_glass, N_water
 ```
 
- For materials that have dispersion, the refractive index can be described with the materials "principal dispersion values", i.e. the refractive index at the blue F line minus the refractive index at the red C line, and is typically a small number.
+Glass elements and lenses accept both `N` and `material`.
 
-* No dispersion: N = 1.7
-* With dispersion: N = [1.7, 0.05]
+Use `N` when you want to define the refractive index directly:
+
+* `N=1.7` uses a constant refractive index for every wavelength.
+* `N=[1.7, 0.05]` uses Cauchy dispersion, where the first value is the base index and the following values are Cauchy coefficients in micrometer units.
+* `N=[1.5168, 64.17]` uses an Abbe description, because the second value is larger than 1. The first value is `nd` and the second value is `Vd`.
+* `N='N-BK7'` loads a named glass from the refractiveindex.info database.
+
+Use `material` when you want to name a database material explicitly:
+
+```
+lens = spherical_lens_class.SphericalLensClass(
+    p0=np.array([0, 0]),
+    n0=np.array([-1, 0]),
+    f=40*mm,
+    diameter=25*mm,
+    material='N-BK7',
+)
+```
+
+When `material` is provided, it takes precedence over `N`. This means `material='N-BK7'` will define the glass even if `N` is also passed. Internally, `N` and `material` are converted into a `GlassMaterial`; during ray tracing the material is evaluated at each ray wavelength, so chromatic rays can see different refractive indices.
 
 #### Colors
 
@@ -359,13 +377,14 @@ A directed parallel light source object with an origin, orientation and width
 
 <i>Object initialisation:</i>
 ```
-plane_source_class.PlaneSourceClass(p0, n0, diameter, wavelength, intensity, intensity_distribution='equidistant', plot_color='wavelength')
+plane_source_class.PlaneSourceClass(p0, n0, diameter, angle, wavelength, intensity, intensity_distribution='equidistant', plot_color='wavelength')
 ```
 
 <i>Input parameters:</i>
 * <b>p0</b> (np.array | default=np.array([0,0])) : Position of the plane source
 * <b>n0</b> (np.array | default=np.array([1,0])) : Direction of the plane source 
 * <b>diameter</b> (float | default=10*mm) : Diameter, extent or size of the plane source
+* <b>angle</b> (float | default=0*deg) : Angle by which the emitted rays are leaving the plane source, relative to n0
 * <b>wavelength</b> (float | default=660*nm) : Wavelength of the light rays 
 * <b>intensity</b> (float | default=1) : Intensity of the initial light rays
 * <b>intensity_distribution</b>  ('equidistant', 'random' | default='equidistant') : Intensity distribution of the rays along the light fan 
@@ -419,7 +438,7 @@ An ideal lens (perfect focus, no aberrations) with a certain focal distance f an
 
 <i>Object initialisation:</i>
 ```
-ideal_thin_lens_class.IdealThinLensClass(p0, n0, f, diameter, N, blur_angle, nr_of_secondary_rays)
+ideal_thin_lens_class.IdealThinLensClass(p0, n0, f, diameter, N, material)
 ```
 
 <i>Input parameters:</i>
@@ -427,13 +446,12 @@ ideal_thin_lens_class.IdealThinLensClass(p0, n0, f, diameter, N, blur_angle, nr_
 * <b>n0</b> (float | default=np.array([-1,0])) : Orientation of the lens' optical axis
 * <b>f</b> (float | default=100*mm) : Focal distance of the lens
 * <b>diameter</b> (float | default=10*mm) : Diameter of the lens
-* <b>N</b> (float | default=N_glass) : Refractive index of the lens
-* <b>blur_angle</b> (float | default=0*deg) : The angle over which rays are scattered when exiting the lens
-* <b>nr_of_secondary_rays</b> (float | default=1) : The number of scattered rays
+* <b>N</b> (float, list, str | default=N_glass) : Refractive index or material name of the lens
+* <b>material</b> (str | default=None) : Optional database material name; when provided, it overrides `N`
 
 #### Spherical lens
 
-A glass lens with focal distance f and spherical surfaces with radii R0 and R1. If f is given, the radii R0 and R1 are ignored (if provided) and calculated from f. In that case the lens is considered symmetrical, i.e. R0 and R1 are equal. If f is not given and R0 and R1 are, then f is calculated from the radii.
+A glass lens with focal distance f and spherical surfaces with radii R0 and R1. If R0 and R1 are given, f is calculated from those radii. If only f is given, R0 and R1 are calculated from f and the lens is considered symmetrical, i.e. R0 and R1 are equal in magnitude.
 
 <p align="center">
 <img src="assets/Syntax_spherical_lens.png", alt="Syntax_spherical_lens.png", width=200, height=200/>
@@ -441,7 +459,7 @@ A glass lens with focal distance f and spherical surfaces with radii R0 and R1. 
 
 <i>Object initialisation:</i>
 ```
-spherical_lens_class.SphericalLensClass(p0, n0, R0, R1, f, thickness, diameter, N, blur_angle, nr_of_secondary_rays, plot_resolution)
+spherical_lens_class.SphericalLensClass(p0, n0, R0, R1, f, thickness, diameter, N, material, plot_resolution)
 ```
 
 <i>Input parameters:</i>
@@ -452,14 +470,13 @@ spherical_lens_class.SphericalLensClass(p0, n0, R0, R1, f, thickness, diameter, 
 * <b>R1</b> (float | default=None) : The radius of the second surface
 * <b>thickness</b> (float | default=2*mm) : Thickness of the lens along the optical axis
 * <b>diameter</b> (float, [float, float] | default=10*mm) : Diameter of the entire lens when one value is given. When a 2-element list is passed, it defines the diameters of the first and second surface, e.g. [20,10]
-* <b>N</b> (float | default=N_glass) : Refraction index
-* <b>nr_of_secondary_rays</b> (float | default=1) : The number of secondary rays an outgoing ray generates
-* <b>blur_angle</b> (float | default=0*deg) : The fan angle of the secondary rays
+* <b>N</b> (float, list, str | default=N_glass) : Refractive index or material name
+* <b>material</b> (str | default=None) : Optional database material name; when provided, it overrides `N`
 * <b>plot_resolution</b> (float | default=1*mm) : Resolution of the plotted lens shape
 
 #### Plano-spherical lens
 
-A glass lens with focal distance f and spherical front surface with radius R and flat back surface. If f is given, the radius R is ignored (if provided) and calculated from f. If f is not given and R is, then f is calculated from the radius.
+A glass lens with focal distance f and spherical front surface with radius R and flat back surface. If R is given, f is calculated from that radius. If only f is given, R is calculated from f.
 
 <p align="center">
 <img src="assets/Syntax_plano_spherical_lens.png", alt="Syntax_plano_spherical_lens.png", width=200, height=200/>
@@ -467,7 +484,7 @@ A glass lens with focal distance f and spherical front surface with radius R and
 
 <i>Object initialisation:</i>
 ```
-plano_spherical_lens_class.PlanoSphericalLensClass(p0, n0, R, f, thickness, diameter, N, blur_angle, nr_of_secondary_rays, plot_resolution)
+plano_spherical_lens_class.PlanoSphericalLensClass(p0, n0, R, f, thickness, diameter, N, material, plot_resolution)
 ```
 
 <i>Input parameters:</i>
@@ -477,9 +494,8 @@ plano_spherical_lens_class.PlanoSphericalLensClass(p0, n0, R, f, thickness, diam
 * <b>R</b> (float | default=None) : The radius of the frontal spherical surface 
 * <b>thickness</b> (float | default=5*mm) : Thickness of the lens along the optical axis
 * <b>diameter</b> (float | default=10*mm) : Diameter of the entire lens when one value is given.
-* <b>N</b> (float | default=N_glass) : Refraction index
-* <b>nr_of_secondary_rays</b> (float | default=1) : The number of secondary rays an outgoing ray generates
-* <b>blur_angle</b> (float | default=0*deg) : The fan angle of the secondary rays
+* <b>N</b> (float, list, str | default=N_glass) : Refractive index or material name
+* <b>material</b> (str | default=None) : Optional database material name; when provided, it overrides `N`
 * <b>plot_resolution</b> (float | default=1*mm) : Resolution of the plotted lens shape
 
 
@@ -528,7 +544,7 @@ from elements import diffuse_plate_class, black_plate_class
 
 #### Diffuse scattering plate
 
-A diffuse scattering surface scatters an incoming ray into a number of secondary rays, in a way defined by its bidirectional reflectance distribution function (BRDF). This BRDF is described by a diffuse scattering component with strength Kd and a specular component with strength Ks. The extent, or width, of the specular component is defined by the parameter alpha, according to the Blinn–Phong model.
+A diffuse scattering surface scatters an incoming ray in a way defined by its bidirectional reflectance distribution function (BRDF). This BRDF is described by a diffuse scattering component with strength Kd and a specular component with strength Ks. The extent, or width, of the specular component is defined by the parameter alpha, according to the Blinn–Phong model.
 
 The figures below show a single incoming ray (coming from the bottom left) casted onto a surface with BRDF parameters Kd=1, Ks=2, alpha=100. The peak of the plotted BRDF points in the reflected direction of the incoming ray. See example 10 for the implementation of the scene.   
 
@@ -538,7 +554,7 @@ The figures below show a single incoming ray (coming from the bottom left) caste
 
 <i>Object initialisation:</i>
 ```
-diffuse_plate_class.DiffusePlateClass(p0, n0, length, thickness, Kd=1, Ks, alpha, nr_of_scattered_rays, n_light)
+diffuse_plate_class.DiffusePlateClass(p0, n0, length, thickness, Kd=1, Ks, alpha, n_light)
 ```
 
 <i>Input parameters:</i>
@@ -549,7 +565,6 @@ diffuse_plate_class.DiffusePlateClass(p0, n0, length, thickness, Kd=1, Ks, alpha
 * <b>Kd</b> (np.array | default=0) : Specular scattering component
 * <b>Ks</b> (np.array | default=0) : Diffuse scattering component
 * <b>alpha</b> (np.array | default=1) : Extent of the specular component
-* <b>nr_of_scattered_rays</b> (np.array | default=1) : The number of secondary rays generated by each incoming ray
 * <b>n_light</b>  (np.array | default=None) : An optional preferential direction of incoming light, only useful when plotting the BRDF in the reflected direction.
 
 #### Black plate (Beam dump)

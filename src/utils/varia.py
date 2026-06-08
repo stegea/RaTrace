@@ -106,7 +106,10 @@ def colormap_fixed(N, color):
 
 
 def alpha_from_N(N):
-    N = N[0] if isinstance(N, list) else N
+    if hasattr(N, 'reference_index'):
+        N = N.reference_index if N.reference_index is not None else N.index_at(587.5618 * 1000 * nm)
+    elif isinstance(N, (list, tuple, np.ndarray)):
+        N = N[0]
     return (N - 1) ** 2
 
 

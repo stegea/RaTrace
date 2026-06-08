@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, inspect
 import matplotlib
 import numpy as np
 matplotlib.use('Qt5Agg')
@@ -18,6 +18,9 @@ NR_OF_RAYS_LIST         = [1,2,3,5,10,20,30,50,100,200,300,500,1000,2000,3000,50
 NR_OF_RAYS_TO_PLOT_LIST = [1,2,3,5,10,20,30,50,100,200,300,500,1000,2000,3000,5000,10000,20000,30000,50000,100000]
 INTENSITY_SCALER_LIST   = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000]
 RED, WHITE              = '\033[31m', '\033[0m'
+MODEL_PARAMETER_SCENE_ITEM_NAME_ROLE = QtCore.Qt.UserRole
+MODEL_PARAMETER_PARAMETER_NAME_ROLE  = QtCore.Qt.UserRole + 1
+MODEL_PARAMETER_PARAMETER_NAMES_ROLE = QtCore.Qt.UserRole + 2
 
 
 
@@ -83,6 +86,8 @@ class SimulationGuiClass(QtWidgets.QWidget):
 
         self.canvas.clear()
         self.tab_display.canvas_display.graph.cla()
+        for source in self.simulation.sources:
+            source.update_source_progress_signal.connect(self.tab_view.update_progress_bar)
         self.update_graphics()        
 
     @QtCore.pyqtSlot()
@@ -119,6 +124,10 @@ class SetupTabWidget(QtWidgets.QWidget):
         self.start_simulation_after_loading_scene_checkbox.setChecked(config.getboolean('scenes', 'start_simulation_after_loading_scene'))
         self.start_simulation_after_loading_scene_checkbox.stateChanged.connect(self.update_start_simulation_after_loading_scene)
 
+        self.start_simulation_after_changing_parameters_checkbox = QtWidgets.QCheckBox("Start simulation after changing parameters")
+        self.start_simulation_after_changing_parameters_checkbox.setChecked(config.getboolean('scenes', 'start_simulation_after_changing_parameters', fallback=False))
+        self.start_simulation_after_changing_parameters_checkbox.stateChanged.connect(self.update_start_simulation_after_changing_parameters)
+
         self.reset_axis_after_loading_scene_checkbox = QtWidgets.QCheckBox("Reset axis after loading scene")
         self.reset_axis_after_loading_scene_checkbox.setChecked(config.getboolean('scenes', 'reset_axis_after_loading_scene'))
         self.reset_axis_after_loading_scene_checkbox.stateChanged.connect(self.update_reset_axis_after_loading_scene)
@@ -127,29 +136,26 @@ class SetupTabWidget(QtWidgets.QWidget):
         self.model_params_tree = QtWidgets.QTreeWidget()
         self.model_params_tree.setColumnCount(2)
         self.model_params_tree.setHeaderLabels(["Element parameters", "Value"])
-        tree_items = []
-        tree_item_1 = QtWidgets.QTreeWidgetItem(["Lens"])
-        tree_item_1_1 = QtWidgets.QTreeWidgetItem(["Focal distance", "1.8"])
-        tree_item_1_2 = QtWidgets.QTreeWidgetItem(["Position", "[64.5, 0.0, 178.4]"])
-        tree_item_1.addChild(tree_item_1_1)
-        tree_item_1.addChild(tree_item_1_2)
-        tree_items.append(tree_item_1)
-        tree_item_2 = QtWidgets.QTreeWidgetItem(["Imager"])
-        tree_item_2_1 = QtWidgets.QTreeWidgetItem(["Pixel size", "6.0"])
-        tree_item_2_2 = QtWidgets.QTreeWidgetItem(["Position", "[74.5, 0.0, 188.4]"])
-        tree_item_2.addChild(tree_item_2_1)
-        tree_item_2.addChild(tree_item_2_2)
-        tree_items.append(tree_item_2)
-        self.model_params_tree.insertTopLevelItems(0, tree_items)
+        self.model_params_tree.setAlternatingRowColors(True)
+        self.model_params_tree.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked | QtWidgets.QAbstractItemView.EditKeyPressed | QtWidgets.QAbstractItemView.SelectedClicked)
+
+        self.apply_model_params_button = QtWidgets.QPushButton("Apply")
+        self.apply_model_params_button.clicked.connect(self.apply_model_params)
+
         layout_controls = QtWidgets.QVBoxLayout()
         layout_controls.addLayout(layout_scene_file)
         layout_controls.addWidget(self.scene_file_text)
         layout_controls.addWidget(self.start_simulation_after_loading_scene_checkbox)
+        layout_controls.addWidget(self.start_simulation_after_changing_parameters_checkbox)
         layout_controls.addWidget(self.reset_axis_after_loading_scene_checkbox)
         layout_controls.addStretch(1)
-        # layout_controls.addWidget(self.model_params_label)
-        # layout_controls.addWidget(self.model_params_tree,15)
+        layout_controls.addWidget(self.model_params_label)
+        layout_controls.addWidget(self.model_params_tree,15)
+        layout_controls.addWidget(self.apply_model_params_button)
         self.setLayout(layout_controls)
+
+        self.simulation.scene_file_loaded_signal.connect(self.update_model_params_tree)
+        self.update_model_params_tree()
 
     def browse_scene_file(self):
         scenes_folder = config.resolve_path(config.get('scenes', 'scenes_folder'))
@@ -165,8 +171,208 @@ class SetupTabWidget(QtWidgets.QWidget):
         print(f'Scene file reloaded: {self.simulation.scene_file}')
         self.simulation.load_scene(self.simulation.scene_file)
 
+    @QtCore.pyqtSlot()
+    def update_model_params_tree(self):
+        self.model_params_tree.clear()
+        scene_items = getattr(self.simulation, 'scene_items', list())
+        if not scene_items:
+            return
+
+        for scene_item_index, scene_item in enumerate(scene_items):
+            model_parameter_definition = self.model_parameter_definition_for_scene_item(scene_item_index)
+            scene_item_name = model_parameter_definition.get('scene_item_name') or f'scene_item_{scene_item_index}'
+            constructor_name = model_parameter_definition.get('constructor_name') or scene_item.__class__.__name__
+            scene_item_display_name = scene_item.name if scene_item.name is not None else scene_item.__class__.__name__
+
+            scene_item_tree_item = QtWidgets.QTreeWidgetItem([f'{scene_item_name}: {scene_item_display_name}', constructor_name])
+            scene_item_tree_item.setData(0, MODEL_PARAMETER_SCENE_ITEM_NAME_ROLE, scene_item_name)
+
+            parameter_names = self.parameter_names_from_scene_item(scene_item)
+            scene_item_tree_item.setData(0, MODEL_PARAMETER_PARAMETER_NAMES_ROLE, parameter_names)
+
+            for parameter_name in parameter_names:
+                parameter_value_text = self.parameter_value_text(scene_item, parameter_name, model_parameter_definition)
+                parameter_display_name = self.parameter_display_name_with_units(parameter_name)
+                parameter_tree_item = QtWidgets.QTreeWidgetItem([parameter_display_name, parameter_value_text])
+                parameter_tree_item.setFlags(parameter_tree_item.flags() | QtCore.Qt.ItemIsEditable)
+                parameter_tree_item.setData(0, MODEL_PARAMETER_PARAMETER_NAME_ROLE, parameter_name)
+                scene_item_tree_item.addChild(parameter_tree_item)
+
+            self.model_params_tree.addTopLevelItem(scene_item_tree_item)
+            scene_item_tree_item.setExpanded(True)
+
+        self.model_params_tree.resizeColumnToContents(0)
+
+    def model_parameter_definition_for_scene_item(self, scene_item_index):
+        model_parameter_definitions = getattr(self.simulation, 'scene_model_parameter_definitions', list())
+        if scene_item_index < len(model_parameter_definitions):
+            return model_parameter_definitions[scene_item_index]
+        return {
+            'scene_item_name': f'scene_item_{scene_item_index}',
+            'constructor_name': None,
+            'parameter_value_sources': dict(),
+        }
+
+    def parameter_names_from_scene_item(self, scene_item):
+        parameter_names = list()
+        try:
+            constructor_signature = inspect.signature(scene_item.__class__.__init__)
+        except (TypeError, ValueError):
+            return parameter_names
+
+        for parameter in constructor_signature.parameters.values():
+            if parameter.name == 'self':
+                continue
+            if parameter.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD):
+                continue
+            parameter_names.append(parameter.name)
+
+        return parameter_names
+
+    def parameter_value_text(self, scene_item, parameter_name, model_parameter_definition):
+        if hasattr(scene_item, parameter_name):
+            return self.text_from_model_parameter_value(getattr(scene_item, parameter_name), parameter_name)
+
+        parameter_value_sources = model_parameter_definition.get('parameter_value_sources', dict())
+        if parameter_name in parameter_value_sources:
+            return parameter_value_sources[parameter_name]
+
+        try:
+            parameter = inspect.signature(scene_item.__class__.__init__).parameters[parameter_name]
+        except (TypeError, ValueError, KeyError):
+            return ''
+
+        if parameter.default is inspect.Parameter.empty:
+            return ''
+
+        return self.text_from_model_parameter_value(parameter.default, parameter_name)
+
+    def parameter_display_name_with_units(self, parameter_name):
+        """Add unit labels to parameter names for display."""
+        units_map = {
+            'wavelength': 'wavelength (nm)',
+            'angle': 'angle (°)',
+            'p0': 'p0 (mm)',
+            'n0': 'n0 (mm)',
+            'f': 'f (mm)',
+            'R0': 'R0 (mm)',
+            'R1': 'R1 (mm)',
+            'thickness': 'thickness (mm)',
+            'length': 'length (mm)',
+            'diameter': 'diameter (mm)',
+        }
+        return units_map.get(parameter_name, parameter_name)
+
+    def text_from_model_parameter_value(self, value, parameter_name=''):
+        value_for_display = self.model_parameter_value_for_display(value, parameter_name)
+        return self.format_value_for_display(value_for_display)
+
+    def format_value_for_display(self, value):
+        """Format value for display with proper rounding and type conversion."""
+        if isinstance(value, np.ndarray):
+            return self.format_value_for_display(value.tolist())
+        if isinstance(value, np.generic):
+            return self.format_value_for_display(value.item())
+        if isinstance(value, float):
+            # Round to 3 decimal places
+            rounded = round(value, 3)
+            # Format to remove unnecessary trailing zeros
+            formatted = f'{rounded:.3f}'.rstrip('0').rstrip('.')
+            return formatted
+        if isinstance(value, list):
+            return '[' + ', '.join(self.format_value_for_display(item) for item in value) + ']'
+        if isinstance(value, tuple):
+            return '(' + ', '.join(self.format_value_for_display(item) for item in value) + ')'
+        return repr(value)
+
+    def model_parameter_value_for_display(self, value, parameter_name=''):
+        if isinstance(value, np.ndarray):
+            return self.model_parameter_value_for_display(value.tolist(), parameter_name)
+        if isinstance(value, np.generic):
+            return self.model_parameter_value_for_display(value.item(), parameter_name)
+        if isinstance(value, list):
+            return [self.model_parameter_value_for_display(list_value, parameter_name) for list_value in value]
+        if isinstance(value, tuple):
+            return tuple(self.model_parameter_value_for_display(tuple_value, parameter_name) for tuple_value in value)
+        
+        # Convert wavelength from mm to nm
+        if parameter_name == 'wavelength' and isinstance(value, (int, float)):
+            return value * 1e6  # mm to nm: multiply by 1e6
+        
+        # Convert angles from radians to degrees
+        if parameter_name == 'angle' and isinstance(value, (int, float)):
+            return np.degrees(value)
+        
+        return value
+
+    def apply_model_params(self):
+        if not self.simulation.scene_file:
+            print(f'No scene file loaded, model parameters cannot be applied')
+            return
+
+        print(f'Applying model parameters and reloading scene: {self.simulation.scene_file}')
+        self.simulation.load_scene(
+            self.simulation.scene_file,
+            param=getattr(self.simulation, 'scene_param', None),
+            model_parameters=self.model_parameters_from_tree(),
+            start_simulation_after_loading_scene=self.start_simulation_after_changing_parameters_checkbox.isChecked()
+        )
+
+    def model_parameters_from_tree(self):
+        model_parameters = dict()
+
+        for scene_item_index in range(self.model_params_tree.topLevelItemCount()):
+            scene_item_tree_item = self.model_params_tree.topLevelItem(scene_item_index)
+            scene_item_name = scene_item_tree_item.data(0, MODEL_PARAMETER_SCENE_ITEM_NAME_ROLE)
+            parameter_names = scene_item_tree_item.data(0, MODEL_PARAMETER_PARAMETER_NAMES_ROLE)
+            if not scene_item_name:
+                continue
+
+            parameter_values = dict()
+            for parameter_index in range(scene_item_tree_item.childCount()):
+                parameter_tree_item = scene_item_tree_item.child(parameter_index)
+                parameter_name = parameter_tree_item.data(0, MODEL_PARAMETER_PARAMETER_NAME_ROLE)
+                parameter_value_str = parameter_tree_item.text(1).strip()
+                # Convert display values back to original units
+                parameter_value_str = self.convert_parameter_value_to_original_units(parameter_name, parameter_value_str)
+                parameter_values[parameter_name] = parameter_value_str
+
+            model_parameters[scene_item_name] = {
+                'parameter_names': parameter_names,
+                'parameter_values': parameter_values,
+            }
+
+        return model_parameters
+
+    def convert_parameter_value_to_original_units(self, parameter_name, value_str):
+        """Convert display values back to original units (mm for wavelength, radians for angles)."""
+        try:
+            # Parse the value string (it's represented with repr())
+            value = eval(value_str)
+            
+            # Convert wavelength from nm to mm
+            if parameter_name == 'wavelength' and isinstance(value, (int, float)):
+                return repr(value / 1e6)  # nm to mm: divide by 1e6
+            
+            # Convert angles from degrees to radians
+            if parameter_name == 'angle' and isinstance(value, (int, float)):
+                return repr(np.radians(value))
+            
+            # Handle lists/tuples of angles
+            if parameter_name == 'angle' and isinstance(value, (list, tuple)):
+                converted_value = type(value)(np.radians(v) if isinstance(v, (int, float)) else v for v in value)
+                return repr(converted_value)
+            
+            return value_str
+        except:
+            # If parsing fails, return the original string
+            return value_str
+
     def update_start_simulation_after_loading_scene(self, value):
         config.set('scenes', 'start_simulation_after_loading_scene', str(int(value == 2)))
+
+    def update_start_simulation_after_changing_parameters(self, value):
+        config.set('scenes', 'start_simulation_after_changing_parameters', str(int(value == 2)))
 
     def update_reset_axis_after_loading_scene(self, value):
         config.set('scenes', 'reset_axis_after_loading_scene', str(int(value == 2)))
