@@ -29,7 +29,7 @@ The information in this README will later be formatted into a Wiki page of this 
 
 ## Overview
 
-<p align="center"> <img src="assets/screenshot_01.png", alt="scene_01_Hello_world", width=800, height=400, style="display: block; margin: 0 auto" /> </p>
+<p align="center"> <img src="assets/screenshot_01.png", alt="scene_01_Hello_world", height=600, style="display: block; margin: 0 auto" /> </p>
 
 <b>Implemented features</b>
 * GUI for 2D raytracing
@@ -76,7 +76,7 @@ The information in this README will later be formatted into a Wiki page of this 
 * Many others ...
 
 <p align="center">
-  <img src="assets/scene_01_Hello_world_02.png", alt="scene_01_Hello_world", width=400, height=150, style="display: block; margin: 0 auto" />
+  <img src="assets/scene_01_Hello_world_02.png", alt="scene_01_Hello_world", height=300, style="display: block; margin: 0 auto" />
 </p>
 
 ---
@@ -208,40 +208,34 @@ The list of elements in the load_scene module becomes a bit too long to show her
 
 The GUI has a rather limited number of controls to keep things simple (for now). Most of the controls in the several tabs are self-explanatory, but we will give some clarification nevertheless:
 
-### Setup
-
 <p align="center">
-<img src="assets/UI_Setup.png", alt="UI_Setup.png"/>
+<img src="assets/UI_Setup.png", alt="UI_Setup.png", height=600/>
+<img src="assets/UI_Simulation.png", alt="UI_Simulation.png", height=600/>
+<img src="assets/UI_View.png", alt="UI_View.png", height=600/>
+<img src="assets/UI_Display.png", alt="UI_Display.png", height=600/>
 </p>
 
+### Setup
+
 * <b>Browse / Reload -</b> This tab allow for loading scenes, as well as reloading scenes. The latter is handy when editing a scene file, and quickly viewing the results without the need to push the load-button and browse to the file over and over.
-* <b>Start simulation ... -</b> When a scene is loaded and this checkbox is enabled, the UI immediately starts simulating the scene when loaded. This also quickens the iterative process of scene editing.
-* <b>Reset axis ... -</b> Auto-zooms the scene to the entire scene space when a scene is loaded.
-* ( <b>Model parameters - </b> Not yet implemented )
+* <b>Start simulation -</b> When a scene is loaded and this checkbox is enabled, the UI immediately starts simulating the scene when loaded. This also quickens the iterative process of scene editing.
+* <b>Reset axis -</b> Auto-zooms the scene to the entire scene space when a scene is loaded.
+* <b>Model parameters - </b> Shows the editable element parameters from the currently loaded scene in a tree view. Change values directly in the tree and click Apply to reload the scene with the updated model parameters; use the "Start simulation after changing parameters" option to automatically rerun the simulation.
 
 ### Simulation
 
-<p align="center">
-<img src="assets/UI_Simulation.png", alt="UI_Simulation.png" />
-</p>
-
-* <b>Number of rays ... - </b>The number of initial rays that is generated, per light source.
+* <b>Number of rays - </b>The number of <u><b>initial</b></u> rays that is generated, per light source. 
 * <b>Use phase information - </b>Taking into account the phase information of the rays to generate an interfered image. This is only relevant when using an imager, since then the phase is integrated within the extent of a pixel.
-* <b>Items are ordered ... - </b>When selecting this option, the raytracer checks the elements for collision with the rays in the order that was given in the scene file. If the optical path is "more complex", unselect this checkbox.
+* <b>Items are ordered - </b>When selecting this option, the raytracer checks the elements for collision with the rays in the order that was given in the scene file. If the optical path is "more complex", unselect this checkbox.
+* <b>Generate reflected rays - </b>Enables the generation of reflected child rays at refractive interfaces in addition to transmitted rays. When enabled, glass elements can create reflected rays that follow Fresnel reflection rules, and the tracing depth is limited by the "Max nr of reflections" setting.
 * <b>Start simulation - </b>you're a smart person, you can figure out what this button does.
 * <b>Export ray data - </b>Export all ray data to a structured ascii-file.
-* <b>Add timestamp ... - </b>Add or omit a timestamp to the export file name.
-
+* <b>Add timestamp - </b>Add or omit a timestamp to the export file name.
 
 ### View
 
-<p align="center">
-<img src="assets/UI_View.png", alt="UI_View.png"/>
-</p>
-
 * <b>Number of plotted rays - </b>How much of the initially generated rays that are plotted. If each rays breaks down in multiple child-rays, this can quickly slow down the drawing process. It is advised to start low, and increase the number if required. This number can not be higher than the number of simulated rays.   
 * <b>Intensity scaler - </b>A slider that can dim down or enhance the intensity of rays. 
-* ( <b>Viewport - </b>Not yet implemented )
 * <b>Auto redraw - </b>When a simulation finishes, the entire scene is automatically redrawn when enabled.
 * <b>Show axis and grid - </b>Show or hide the axis and grid
 * <b>Intensity-coded ray colors - </b>When enabled the transparency of plotted rays scales with their intensity  
@@ -249,32 +243,30 @@ The GUI has a rather limited number of controls to keep things simple (for now).
 * <b>Black background - </b>Show a black instead of white background. Usefull for dark-themed presentations, or in some cases the rays display better with a black background.
 * <b>Show pixels - </b>When enabled, this shows the center and extent of all pixels of an imager. This could slow down the plotting process when the imager has many pixels.
 * <b>Show non-colliding rays - </b>Show/hide rays that do not collide with any of the elements. Useful to speed up the plotting process or declutter the image in some cases.
-* <b>Redraw scene - </b>Guess what?
+* <b>Redraw scene - </b>Guess what ... it redraws the scene.
 
 Note that the intensity and line width of plotted rays automatically scales up or down with the number of plotted rays. 
 
 ### Display
-
-<p align="center">
-<img src="assets/UI_Display.png", alt="UI_Display.png"/>
-</p>
 
 The display tab is only enabled when there is a display or an imager present in the scene. The graph in this tab shows the impact points of the rays with the display, in various ways. 
 
 #### Display graph modes
 
 * <b>Scatterplot 1D : </b>The intersection points of the rays with the display, shown in 1D
-* <b>Scatterplot 2D : </b>The same as the 1D version, but shown in pseudo-2D, where each point gets a random vertical displacement. Useful for better visualisation. 
+* <b>Scatterplot pseudo 2D : </b>The same as the 1D version, but shown in pseudo-2D, where each point gets a random vertical displacement. Useful for better visualisation. 
+* <b>Scatterplot pseudo polar : </b>Plots impact points in a radial layout by mapping the display X-position to radius and randomizing the angle. This spreads the 1D distribution into a circular cloud for compact visual comparison of multiple rays or sources.
 * <b>Intensity plot 1D : </b>Only works with pixel-based imagers. This graph shows the intensity registered in all the pixels of the 1D imager.
-* <b>Intensity plot 2D : </b>Same as the 1D version, but shown as a pseudo-2D color image. 
+* <b>Intensity plot pseudo 2D : </b>Same as the 1D version, but shown as a pseudo-2D color image. 
 * <b>Phase plot : </b>This too only works with imagers. This shows the phases of the rays at the intersection points, as well as the resulting phase.
 
 <p align="center">
-<img src="assets/UI_Display_Scatterplot_1D.png", alt="UI_Display_Scatterplot_1D.png", width=900, height=190/>
-<img src="assets/UI_Display_Scatterplot_2D.png", alt="UI_Display_Scatterplot_2D.png", width=900, height=190/>
-<img src="assets/UI_Display_Intensity_plot_1D.png", alt="UI_Display_Intensity_plot_1D.png", width=900, height=190/>
-<img src="assets/UI_Display_Intensity_plot_2D.png", alt="UI_Display_Intensity_plot_2D.png", width=900, height=190/>
-<img src="assets/UI_Display_Phase_plot.png", alt="UI_Display_Phase_plot.png", width=900, height=190/>
+<img src="assets/UI_Display_Scatterplot_1D.png", alt="UI_Display_Scatterplot_1D.png", height=300/>
+<img src="assets/UI_Display_Scatterplot_2D.png", alt="UI_Display_Scatterplot_2D.png", height=300/>
+<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png", alt="UI_Display_Pseudo_polar_scatter_plot.png", height=300/>
+<img src="assets/UI_Display_Intensity_plot_1D.png", alt="UI_Display_Intensity_plot_1D.png", height=300/>
+<img src="assets/UI_Display_Intensity_plot_2D.png", alt="UI_Display_Intensity_plot_2D.png", height=300/>
+<img src="assets/UI_Display_Phase_plot.png", alt="UI_Display_Phase_plot.png", height=300/>
 </p>
 
 
@@ -343,10 +335,13 @@ from light import point_source_class, plane_source_class, diffuse_plane_source_c
 
 #### Directed point source
 
-A directed point light source object with an origin, orientation and spread fan angle
+A directed point light source object with an origin, orientation and spread fan angle. The figure below shows some possible configurations for a fixed fan angle of 20°. First row: equiangular and random distribution of rays. Second row: uniformly and randomly sampled Gaussian distribution of rays.
+
+Note that the total angular range of rays exceeds the "fan angle" of the beam in case of Gaussian distribution of rays. Since a Gaussian beam has theoretical infinite width, the fan angle given as a parameter is considered to be the "full angular width at half max" (FWHM) of the beam.
+
 
 <p align="center">
-<img src="assets/Syntax_point_source.png", alt="Syntax_point_source.png", width=200, height=200/>
+<img src="assets/Syntax_point_source.png", alt="Syntax_point_source.png", height=400/>
 </p>
 
 <i>Object initialisation:</i>
@@ -357,7 +352,7 @@ point_source_class.PointSourceClass(p0, n0, fan_angle wavelength, intensity, int
 <i>Input parameters:</i>
 * <b>p0</b> (np.array | default=np.array([0,0])) : Position of the point source
 * <b>n0</b> (np.array | default=np.array([1,0])) : Direction of the point source 
-* <b>fan_angle</b> (float | default=30*deg) : Fan angle of the cone of light
+* <b>fan_angle</b> (float | default=30*deg) : Fan angle of the cone of light. For 'gaussian' intensity distribution, this represents the full (angular) width at half of the height (FWHM) of the Gaussian beam.
 * <b>wavelength</b> (float | default=660*nm) : Wavelength of the light rays 
 * <b>intensity</b> (float | default=1) : Intensity of the initial light rays
 * <b>intensity_distribution</b>  ('equiangular', 'gaussian', 'gaussianrandom', 'random' | default='equiangular') : Intensity distribution of the rays along the light fan 
@@ -365,10 +360,12 @@ point_source_class.PointSourceClass(p0, n0, fan_angle wavelength, intensity, int
 
 #### Parallel plane source
 
-A directed parallel light source object with an origin, orientation and width
+A directed parallel light source object with an origin, orientation, width and exit angle. The figure below shows some possible configurations for a fixed source diameter. First row: equidistant and random distribution of rays. Second row: uniformly and randomly sampled Gaussian distribution of rays. Third row: plane source at an angle and exit angle at zero, plane source at zero angle but non-zero exit angle of rays.
+
+Note that the total range of rays exceeds the "diameter" of the beam in case of Gaussian distribution of rays. Since a Gaussian beam has theoretical infinite width, the diameter given as a parameter is considered to be the "full width at half max" (FWHM) of the beam.
 
 <p align="center">
-<img src="assets/Syntax_plane_source.png", alt="Syntax_plane_source.png", width=200, height=200/>
+<img src="assets/Syntax_plane_source.png", alt="Syntax_plane_source.png", height=600/>
 </p>
 
 <i>Object initialisation:</i>
@@ -379,11 +376,11 @@ plane_source_class.PlaneSourceClass(p0, n0, diameter, angle, wavelength, intensi
 <i>Input parameters:</i>
 * <b>p0</b> (np.array | default=np.array([0,0])) : Position of the plane source
 * <b>n0</b> (np.array | default=np.array([1,0])) : Direction of the plane source 
-* <b>diameter</b> (float | default=10*mm) : Diameter, extent or size of the plane source. For 'gaussian' intensity distribution, this represents the full width at 1/e² height of the Gaussian beam
+* <b>diameter</b> (float | default=10*mm) : Diameter, extent or size of the plane source. For 'gaussian' intensity distribution, this represents the full width at half of the height (FWHM) of the Gaussian beam.
 * <b>angle</b> (float | default=0*deg) : Angle by which the emitted rays are leaving the plane source, relative to n0
 * <b>wavelength</b> (float | default=660*nm) : Wavelength of the light rays 
 * <b>intensity</b> (float | default=1) : Intensity of the initial light rays
-* <b>intensity_distribution</b>  ('equidistant', 'gaussian', 'random' | default='equidistant') : Intensity distribution of the rays along the plane. 'equidistant' creates evenly spaced rays, 'gaussian' creates rays following a Gaussian distribution with width defined by diameter, 'random' creates randomly distributed rays
+* <b>intensity_distribution</b>  ('equidistant', 'gaussian', 'gaussianrandom', 'random' | default='equidistant') : Intensity distribution of the rays along the plane. 'equidistant' creates evenly spaced rays, 'gaussian' creates rays following a Gaussian distribution with width defined by diameter, 'gaussianrandom' creates randomly sampled Gaussian-distributed ray positions, 'random' creates uniformly random ray positions
 * <b>plot_color</b> (color | default='wavelength'): Plot color of the light rays
 
 #### Diffuse plane source
@@ -391,7 +388,7 @@ plane_source_class.PlaneSourceClass(p0, n0, diameter, angle, wavelength, intensi
 A directed diffuse parallel light source object with an origin, orientation, width and spread angle. The ray distribution along its diameter, as well as the ray orientation is random within the limits defined. The example below shows the situation for a 20° fan angle.
 
 <p align="center">
-<img src="assets/Syntax_diffuse_plane_source.png", alt="Syntax_diffuse_plane_source.png", width=200, height=200/>
+<img src="assets/Syntax_diffuse_plane_source.png", alt="Syntax_diffuse_plane_source.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -429,7 +426,7 @@ from elements import ideal_thin_lens_class, spherical_lens_class, glass_element_
 An ideal lens (perfect focus, no aberrations) with a certain focal distance f and diameter.
 
 <p align="center">
-<img src="assets/Syntax_ideal_lens.png", alt="Syntax_ideal_lens.png", width=200, height=200/>
+<img src="assets/Syntax_ideal_lens.png", alt="Syntax_ideal_lens.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -450,7 +447,7 @@ ideal_thin_lens_class.IdealThinLensClass(p0, n0, f, diameter, N, material)
 A glass lens with focal distance f and spherical surfaces with radii R0 and R1. If R0 and R1 are given, f is calculated from those radii. If only f is given, R0 and R1 are calculated from f and the lens is considered symmetrical, i.e. R0 and R1 are equal in magnitude.
 
 <p align="center">
-<img src="assets/Syntax_spherical_lens.png", alt="Syntax_spherical_lens.png", width=200, height=200/>
+<img src="assets/Syntax_spherical_lens.png", alt="Syntax_spherical_lens.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -475,7 +472,7 @@ spherical_lens_class.SphericalLensClass(p0, n0, R0, R1, f, thickness, diameter, 
 A glass lens with focal distance f and spherical front surface with radius R and flat back surface. If R is given, f is calculated from that radius. If only f is given, R is calculated from f.
 
 <p align="center">
-<img src="assets/Syntax_plano_spherical_lens.png", alt="Syntax_plano_spherical_lens.png", width=200, height=200/>
+<img src="assets/Syntax_plano_spherical_lens.png", alt="Syntax_plano_spherical_lens.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -499,10 +496,10 @@ plano_spherical_lens_class.PlanoSphericalLensClass(p0, n0, R, f, thickness, diam
 
 #### Glass parallel plate
 
-A simple glass parallel plate with thickness
+A simple glass parallel plate with a length and a thickness
 
 <p align="center">
-<img src="assets/Syntax_glass_parallel_plate.png", alt="Syntax_glass_parallel_plate.png", width=200, height=200/>
+<img src="assets/Syntax_glass_parallel_plate.png", alt="Syntax_glass_parallel_plate.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -511,23 +508,59 @@ glass_parallel_plate_class.GlassParallelPlate(p0, n0, , thickness, length, N, ge
 ```
 
 <i>Input parameters:</i>
-(To do)
+* <b>p0</b> (np.array([0,0]) : Position of the first surface of the plate.
+* <b>n0</b> (np.array([-1,0]) : Orientation of the plate's normal.
+* <b>thickness</b> (float | default=1*mm) : Thickness of the plate, in the direction along the normal.
+* <b>length</b> (float | default=10*mm) : Length of the plate, perpendicular to the normal.
+* <b>N</b> (float, list, str | default=N_glass) : Refractive index or material name.
+* <b>material</b> (str | default=None) : Optional material database name; overrides `N` when provided.
+* <b>generate_reflections</b> (bool | default=True) : Enable or disable reflected ray generation at the plate surfaces.
+* <b>is_active</b> (bool | default=True) : Whether the plate participates in ray tracing.
+* <b>is_visible</b> (bool | default=True) : Whether the plate is drawn in the scene.
 
 #### Prism
 
-A glass prism with a certain apex angle
+There are two types of prism elements that live in ```glass_prism_class```. For the first one, a "rectangular prism", one of its internal angles is at 90°, while the other angles are not. The second prism is an isoscele prism, where its internal angles are not (necessarily) 90°, but are defined by the "apex angle". Both prism types can be seen in the image below.
 
 <p align="center">
-<img src="assets/Syntax_prism.png", alt="Syntax_prism.png", width=200, height=200/>
+<img src="assets/Syntax_prism.png", alt="Syntax_prism.png", height=300/>
 </p>
+
+##### Rectangular prism
 
 <i>Object initialisation:</i>
 ```
-glass_prism_class.GlassPrism(p0, n0, angle_apex, length, N, generate_reflections)
+glass_prism_class.GlassPrismRectangularClass(p0, n0, angle, length, N, generate_reflections)
 ```
 
 <i>Input parameters:</i>
-(To do)
+* <b>p0</b> (np.array([0,0]) : Position of the prism's 90° corner.
+* <b>n0</b> (np.array([0,-1]) : Orientation of the prism normal.
+* <b>angle</b> (float | default=45*deg) : Internal angle that defines the prism's shape.
+* <b>length</b> (float | default=10*mm) : Length of the prism base.
+* <b>N</b> (float, list, str | default=N_glass) : Refractive index or material name.
+* <b>material</b> (str | default=None) : Optional material database name; overrides `N` when provided.
+* <b>generate_reflections</b> (bool | default=False) : Enable reflected ray generation at the prism surfaces.
+* <b>is_active</b> (bool | default=True) : Whether the prism participates in ray tracing.
+* <b>is_visible</b> (bool | default=True) : Whether the prism is drawn in the scene.
+
+##### Isoscele prism
+
+<i>Object initialisation:</i>
+```
+glass_prism_class.GlassPrismIsoscelesClass(p0, n0, angle_apex, length, N, generate_reflections)
+```
+
+<i>Input parameters:</i>
+* <b>p0</b> (np.array([0,0]) : Position of the prism's base surface.
+* <b>n0</b> (np.array([1,1]) : Orientation of the prism normal.
+* <b>angle_apex</b> (float | default=90*deg) : Apex angle between the prism faces.
+* <b>length</b> (float | default=10*mm) : Length of the prism base.
+* <b>N</b> (float, list, str | default=N_glass) : Refractive index or material name.
+* <b>material</b> (str | default=None) : Optional material database name; overrides `N` when provided.
+* <b>generate_reflections</b> (bool | default=True) : Enable reflected ray generation at the prism surfaces.
+* <b>is_active</b> (bool | default=True) : Whether the prism participates in ray tracing.
+* <b>is_visible</b> (bool | default=True) : Whether the prism is drawn in the scene.
 
 
 ### Surfaces
@@ -542,10 +575,10 @@ from elements import diffuse_plate_class, black_plate_class
 
 A diffuse scattering surface scatters an incoming ray in a way defined by its bidirectional reflectance distribution function (BRDF). This BRDF is described by a diffuse scattering component with strength Kd and a specular component with strength Ks. The extent, or width, of the specular component is defined by the parameter alpha, according to the Blinn–Phong model.
 
-The figures below show a single incoming ray (coming from the bottom left) casted onto a surface with BRDF parameters Kd=1, Ks=2, alpha=100. The peak of the plotted BRDF points in the reflected direction of the incoming ray. See example 10 for the implementation of the scene.   
+The figures below show a single incoming ray (coming from the bottom left) casted onto a surface with BRDF parameters Kd=1, Ks=2, alpha=100. The peak of the plotted BRDF points in the reflected direction of the incoming ray.
 
 <p align="center">
-<img src="assets/Syntax_diffuse_scattering_plate_1.png", alt="Syntax_diffuse_scattering_plate_1.png", width=200, height=200/><img src="assets/Syntax_diffuse_scattering_plate_2.png", alt="Syntax_diffuse_scattering_plate_2.png", width=200, height=200/>
+<img src="assets/Syntax_diffuse_scattering_plate_1.png", alt="Syntax_diffuse_scattering_plate_1.png", height=300/><img src="assets/Syntax_diffuse_scattering_plate_2.png", alt="Syntax_diffuse_scattering_plate_2.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -568,7 +601,7 @@ diffuse_plate_class.DiffusePlateClass(p0, n0, length, thickness, Kd=1, Ks, alpha
 A black plate can be used as a beam dump, or for outlining light absorbing walls like lens tubes, telescopic tubes, etc. In the figure below, note that non-colliding rays are colored differently, IF at all (see "view" settings).
 
 <p align="center">
-<img src="assets/Syntax_black_plate.png", alt="Syntax_black_plate.png", width=200, height=200/>
+<img src="assets/Syntax_black_plate.png", alt="Syntax_black_plate.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -588,7 +621,7 @@ black_plate_class.BlackPlateClass(p0, n0, length, thickness, plot_color)
 An aperture with an inner and outer diameter
 
 <p align="center">
-<img src="assets/Syntax_aperture.png", alt="Syntax_aperture.png", width=200, height=200/>
+<img src="assets/Syntax_aperture.png", alt="Syntax_aperture.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -606,19 +639,21 @@ aperture_class.ApertureClass(p0, n0, diameter_inner, diameter_outer, plot_color)
 
 ### Mirrors
 
-Mirrors are imported from the elements folder:
+Mirrors are imported from the elements folder: 
 
 ```
 from elements import flat_mirror_class, semi_transparent_mirror_class, parabolic_mirror_class
 ```
 
+The figure below shows 2 types of mirrors: regular fully reflecting mirrors and semitransparent mirrors:
+
+<p align="center">
+<img src="assets/Syntax_flat_mirrors.png", alt="Syntax_flat_mirrors.png", height=300/>
+</p>
+
 #### Flat mirror
 
 A flat, fully reflecting mirror
-
-<p align="center">
-<img src="assets/Syntax_flat_mirror.png", alt="Syntax_flat_mirror.png", width=200, height=200/>
-</p>
 
 <i>Object initialisation:</i>
 ```
@@ -636,10 +671,6 @@ flat_mirror_class.FlatMirrorClass(p0, n0, length, thickness, plot_color)
 
 A semi-transparent mirror with a transmission coefficient
 
-<p align="center">
-<img src="assets/Syntax_semitransparent_mirror.png", alt="Syntax_semitransparent_mirror.png", width=200, height=200/>
-</p>
-
 <i>Object initialisation:</i>
 ```
 semi_transparent_mirror_class.SemiTransparentMirror(p0, n0, length, transmission)
@@ -656,7 +687,7 @@ semi_transparent_mirror_class.SemiTransparentMirror(p0, n0, length, transmission
 A parabolic mirror with a focal distance and a diameter
 
 <p align="center">
-<img src="assets/Syntax_parabolic_mirror.png", alt="Syntax_parabolic_mirror.png", width=200, height=200/>
+<img src="assets/Syntax_parabolic_mirror.png", alt="Syntax_parabolic_mirror.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>

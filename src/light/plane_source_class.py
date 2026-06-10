@@ -28,46 +28,32 @@ class PlaneSourceClass(light_class.LightSourceClass):
 
         # Generate the rays according to a given distribution
         if self.intensity_distribution == 'equidistant':
-            if N_rays == 1:
-                t_range = [0]
-            else:
-                t_range = np.linspace(-1, 1, N_rays, endpoint=True)
-
-            for ind in range(len(t_range)):
-                p0 = self.p0 + self.r * self.diameter/2 * t_range[ind]
-                intensity = self.intensity/N_rays
-                col = cols[round(ind / max([(self.nr_of_original_rays - 1),1]) * (len(cols) - 1))]
-                r = geometry.rotate_direction_over_angle(self.n0, self.angle)
-                ray = light_class.RayClass(p0=p0, r=r, intensity=intensity, wavelength=self.wavelength, N=N_air, ray_parent=None, source_element=self, lightsource_ID=self.ID, plot_color=col)
-                self.add_ray(ray)
-
+            t_range = np.linspace(-1, 1, N_rays, endpoint=True)  if  N_rays>1  else  np.array([0])
         elif self.intensity_distribution == 'gaussian':
             (positions, probability_cumsum) = varia.generate_gaussian_pcs(FWHM=self.diameter)
-            t_range_raw = varia.generate_gaussian_pcs(positions, probability_cumsum, nr_of_samples=N_rays, randomize=False)
-            t_range_raw = t_range_raw if N_rays>1 else np.array([0])
-            
-            # Normalize to [-1, 1] range to match pattern of other distributions
-            max_val = np.max(np.abs(t_range_raw)) if len(t_range_raw) > 0 else 1
-            t_range = t_range_raw / max_val if max_val > 0 else np.zeros_like(t_range_raw)
-            
-            for ind in range(len(t_range)):
-                p0 = self.p0 + self.r * self.diameter/2 * t_range[ind]
-                intensity = self.intensity/N_rays
-                col = cols[round(ind / max([(self.nr_of_original_rays - 1),1]) * (len(cols) - 1))]
-                r = geometry.rotate_direction_over_angle(self.n0, self.angle)
-                ray = light_class.RayClass(p0=p0, r=r, intensity=intensity, wavelength=self.wavelength, N=N_air, ray_parent=None, source_element=self, lightsource_ID=self.ID, plot_color=col)
-                self.add_ray(ray)
-
+            t_range = varia.generate_samples_from_pcs(positions, probability_cumsum, nr_of_samples=N_rays, randomize=False)
+            t_range = t_range  if  N_rays>1  else  np.array([0])
+        elif self.intensity_distribution == 'gaussianrandom':
+            (positions, probability_cumsum) = varia.generate_gaussian_pcs(FWHM=self.diameter)
+            t_range = varia.generate_samples_from_pcs(positions, probability_cumsum, nr_of_samples=N_rays, randomize=True)
+            t_range = t_range  if  N_rays>1  else  np.array([0])
         elif self.intensity_distribution == 'random':
             t_range = np.random.rand(N_rays) * 2 - 1
             t_range = np.sort(t_range)
-            for ind in range(len(t_range)):
-                p0 = self.p0 + self.r * self.diameter/2 * t_range[ind]
-                intensity = self.intensity/N_rays
-                col = cols[round(ind / max([(self.nr_of_original_rays - 1),1]) * (len(cols) - 1))]
-                r = geometry.rotate_direction_over_angle(self.n0, self.angle)
-                ray = light_class.RayClass(p0=p0, r=r, intensity=intensity, wavelength=self.wavelength, N=N_air, ray_parent=None, source_element=self, lightsource_ID=self.ID, plot_color=col)
-                self.add_ray(ray)
+        else:
+            raise ValueError(
+                f'Error in PlaneSourceClass: intensity distribution. '
+                f'{self.intensity_distribution!r} not recognized. '
+                f'Choose one of: (equidistant, gaussian, gaussianrandom, random).'
+            )
+
+        for ind in range(len(t_range)):
+            p0 = self.p0 + self.r * self.diameter/2 * t_range[ind]
+            intensity = self.intensity/N_rays
+            col = cols[round(ind / max([(self.nr_of_original_rays - 1),1]) * (len(cols) - 1))]
+            r = geometry.rotate_direction_over_angle(self.n0, self.angle)
+            ray = light_class.RayClass(p0=p0, r=r, intensity=intensity, wavelength=self.wavelength, N=N_air, ray_parent=None, source_element=self, lightsource_ID=self.ID, plot_color=col)
+            self.add_ray(ray)
 
     def __str__(self):
         n_str  = varia.format_1D_array(arr=self.n0, fmt='7.4f')

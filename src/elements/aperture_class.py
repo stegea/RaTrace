@@ -7,7 +7,7 @@ from utils.configuration_class import config
 EPSILON = 1e-6
 
 class ApertureClass(element_class.ElementClass):
-    def __init__(self, p0=np.array([0, 0]), n0=np.array([-1, 0]), diameter_inner=10*mm, diameter_outer=20*mm, plot_color=(0.5,0.5,0.5,1), is_active=True, is_visible=True):
+    def __init__(self, p0=np.array([0, 0]), n0=np.array([-1, 0]), diameter_inner=10*mm, diameter_outer=20*mm, plot_color='black', is_active=True, is_visible=True):
         self.diameter_inner = np.min([diameter_inner, diameter_outer])
         self.diameter_outer = np.max([diameter_inner, diameter_outer])
         self.plot_color = plot_color
@@ -47,14 +47,14 @@ class ApertureClass(element_class.ElementClass):
             else:
                 edgecolor = self.plot_color
             
-            graph.plot([self.pts[0][X], self.pts[1][X]], [self.pts[0][Y], self.pts[1][Y]], color=edgecolor, linewidth=1, linestyle='solid', alpha=1, zorder=5)
-            graph.plot([self.pts[2][X], self.pts[3][X]], [self.pts[2][Y], self.pts[3][Y]], color=edgecolor, linewidth=1, linestyle='solid', alpha=1, zorder=5)
+            graph.plot([self.pts[0][X], self.pts[1][X]], [self.pts[0][Y], self.pts[1][Y]], color=edgecolor, linewidth=2, linestyle='solid', alpha=1, zorder=5)
+            graph.plot([self.pts[2][X], self.pts[3][X]], [self.pts[2][Y], self.pts[3][Y]], color=edgecolor, linewidth=2, linestyle='solid', alpha=1, zorder=5)
             L = self.diameter_outer/30
             p1a = self.pts[1]+self.n0*L/2
             p1b = self.pts[1]-self.n0*L/2
             p2a = self.pts[2]+self.n0*L/2
             p2b = self.pts[2]-self.n0*L/2
-            graph.plot([p1a[X], p1b[X]], [p1a[Y], p1b[Y]], color=edgecolor, linewidth=1, linestyle='solid', alpha=1, zorder=5)
-            graph.plot([p2a[X], p2b[X]], [p2a[Y], p2b[Y]], color=edgecolor, linewidth=1, linestyle='solid', alpha=1, zorder=5)
+            graph.plot([p1a[X], p1b[X]], [p1a[Y], p1b[Y]], color=edgecolor, linewidth=2, linestyle='solid', alpha=1, zorder=5)
+            graph.plot([p2a[X], p2b[X]], [p2a[Y], p2b[Y]], color=edgecolor, linewidth=2, linestyle='solid', alpha=1, zorder=5)
             super().plot(graph)
 

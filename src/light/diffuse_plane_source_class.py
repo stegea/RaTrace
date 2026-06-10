@@ -52,6 +52,6 @@ class DiffusePlaneSourceClass(light_class.LightSourceClass):
         col = col[0]
         graph.plot(self.p0[X] + self.r[X] * self.diameter / 2 * np.array([-1, 1]),  self.p0[Y] + self.r[Y] * self.diameter / 2 * np.array([-1, 1]), color=col,  linewidth=3, linestyle='solid')
         # Plot the principal radiating direction
-        graph.quiver(self.p0[X], self.p0[Y], 10*self.n0[X], 10*self.n0[Y], color=col, width=0.2, units='xy')
+        graph.quiver(self.p0[X], self.p0[Y], 10*self.n0[X], 10*self.n0[Y], color=col, width=0.1, units='xy')
         # Plot the rays
         super().plot(graph)
