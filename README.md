@@ -209,10 +209,10 @@ The list of elements in the load_scene module becomes a bit too long to show her
 The GUI has a rather limited number of controls to keep things simple (for now). Most of the controls in the several tabs are self-explanatory, but we will give some clarification nevertheless:
 
 <p align="center">
-<img src="assets/UI_Setup.png", alt="UI_Setup.png", height=300/>
-<img src="assets/UI_Simulation.png", alt="UI_Simulation.png", height=300/>
-<img src="assets/UI_View.png", alt="UI_View.png", height=300/>
-<img src="assets/UI_Display.png", alt="UI_Display.png", height=300/>
+<img src="assets/UI_Setup.png", alt="UI_Setup.png", height=150/>
+<img src="assets/UI_Simulation.png", alt="UI_Simulation.png", height=150/>
+<img src="assets/UI_View.png", alt="UI_View.png", height=150/>
+<img src="assets/UI_Display.png", alt="UI_Display.png", height=150/>
 </p>
 
 ### Setup
@@ -341,7 +341,7 @@ Note that the total angular range of rays exceeds the "fan angle" of the beam in
 
 
 <p align="center">
-<img src="assets/Syntax_point_source.png", alt="Syntax_point_source.png", height=300/>
+<img src="assets/Syntax_point_source.png", alt="Syntax_point_source.png", height=200/>
 </p>
 
 <i>Object initialisation:</i>
@@ -365,7 +365,7 @@ A directed parallel light source object with an origin, orientation, width and e
 Note that the total range of rays exceeds the "diameter" of the beam in case of Gaussian distribution of rays. Since a Gaussian beam has theoretical infinite width, the diameter given as a parameter is considered to be the "full width at half max" (FWHM) of the beam.
 
 <p align="center">
-<img src="assets/Syntax_plane_source.png", alt="Syntax_plane_source.png", height=500/>
+<img src="assets/Syntax_plane_source.png", alt="Syntax_plane_source.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>
