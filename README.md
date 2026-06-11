@@ -261,12 +261,14 @@ The display tab is only enabled when there is a display or an imager present in 
 * <b>Phase plot : </b>This too only works with imagers. This shows the phases of the rays at the intersection points, as well as the resulting phase.
 
 <p align="center">
-<img src="assets/UI_Display_Scatterplot_1D.png" alt="UI_Display_Scatterplot_1D.png" height=100/>
-<img src="assets/UI_Display_Scatterplot_2D.png" alt="UI_Display_Scatterplot_2D.png" height=100/>
-<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png" alt="UI_Display_Pseudo_polar_scatter_plot.png" height=100/>
-<img src="assets/UI_Display_Intensity_plot_1D.png" alt="UI_Display_Intensity_plot_1D.png" height=100/>
-<img src="assets/UI_Display_Intensity_plot_2D.png" alt="UI_Display_Intensity_plot_2D.png" height=100/>
-<img src="assets/UI_Display_Phase_plot.png" alt="UI_Display_Phase_plot.png" height=100/>
+<img src="assets/UI_Display_Scatterplot_1D.png" alt="UI_Display_Scatterplot_1D.png" height=200/>
+<img src="assets/UI_Display_Scatterplot_2D.png" alt="UI_Display_Scatterplot_2D.png" height=200/>
+<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png" alt="UI_Display_Pseudo_polar_scatter_plot.png" height=200/>
+</p>
+<p align="center">
+<img src="assets/UI_Display_Intensity_plot_1D.png" alt="UI_Display_Intensity_plot_1D.png" height=200/>
+<img src="assets/UI_Display_Intensity_plot_2D.png" alt="UI_Display_Intensity_plot_2D.png" height=200/>
+<img src="assets/UI_Display_Phase_plot.png" alt="UI_Display_Phase_plot.png" height=200/>
 </p>
 
 
