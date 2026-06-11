@@ -261,14 +261,14 @@ The display tab is only enabled when there is a display or an imager present in 
 * <b>Phase plot : </b>This too only works with imagers. This shows the phases of the rays at the intersection points, as well as the resulting phase.
 
 <p align="center">
-<img src="assets/UI_Display_Scatterplot_1D.png" alt="UI_Display_Scatterplot_1D.png" height=300/>
-<img src="assets/UI_Display_Scatterplot_2D.png" alt="UI_Display_Scatterplot_2D.png" height=300/>
-<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png" alt="UI_Display_Pseudo_polar_scatter_plot.png" height=300/>
+<img src="assets/UI_Display_Scatterplot_1D.png" alt="UI_Display_Scatterplot_1D.png" height=250/>
+<img src="assets/UI_Display_Scatterplot_2D.png" alt="UI_Display_Scatterplot_2D.png" height=250/>
+<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png" alt="UI_Display_Pseudo_polar_scatter_plot.png" height=250/>
 </p>
 <p align="center">
-<img src="assets/UI_Display_Intensity_plot_1D.png" alt="UI_Display_Intensity_plot_1D.png" height=300/>
-<img src="assets/UI_Display_Intensity_plot_2D.png" alt="UI_Display_Intensity_plot_2D.png" height=300/>
-<img src="assets/UI_Display_Phase_plot.png" alt="UI_Display_Phase_plot.png" height=300/>
+<img src="assets/UI_Display_Intensity_plot_1D.png" alt="UI_Display_Intensity_plot_1D.png" height=250/>
+<img src="assets/UI_Display_Intensity_plot_2D.png" alt="UI_Display_Intensity_plot_2D.png" height=250/>
+<img src="assets/UI_Display_Phase_plot.png" alt="UI_Display_Phase_plot.png" height=250/>
 </p>
 
 
@@ -428,7 +428,7 @@ from elements import ideal_thin_lens_class, spherical_lens_class, glass_element_
 An ideal lens (perfect focus, no aberrations) with a certain focal distance f and diameter.
 
 <p align="center">
-<img src="assets/Syntax_ideal_lens.png" alt="Syntax_ideal_lens.png" height=400/>
+<img src="assets/Syntax_ideal_lens.png" alt="Syntax_ideal_lens.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -449,7 +449,7 @@ ideal_thin_lens_class.IdealThinLensClass(p0, n0, f, diameter, N, material)
 A glass lens with focal distance f and spherical surfaces with radii R0 and R1. If R0 and R1 are given, f is calculated from those radii. If only f is given, R0 and R1 are calculated from f and the lens is considered symmetrical, i.e. R0 and R1 are equal in magnitude.
 
 <p align="center">
-<img src="assets/Syntax_spherical_lens.png" alt="Syntax_spherical_lens.png" height=400/>
+<img src="assets/Syntax_spherical_lens.png" alt="Syntax_spherical_lens.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -474,7 +474,7 @@ spherical_lens_class.SphericalLensClass(p0, n0, R0, R1, f, thickness, diameter, 
 A glass lens with focal distance f and spherical front surface with radius R and flat back surface. If R is given, f is calculated from that radius. If only f is given, R is calculated from f.
 
 <p align="center">
-<img src="assets/Syntax_plano_spherical_lens.png" alt="Syntax_plano_spherical_lens.png" height=400/>
+<img src="assets/Syntax_plano_spherical_lens.png" alt="Syntax_plano_spherical_lens.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -501,7 +501,7 @@ plano_spherical_lens_class.PlanoSphericalLensClass(p0, n0, R, f, thickness, diam
 A simple glass parallel plate with a length and a thickness
 
 <p align="center">
-<img src="assets/Syntax_glass_parallel_plate.png" alt="Syntax_glass_parallel_plate.png" height=400/>
+<img src="assets/Syntax_glass_parallel_plate.png" alt="Syntax_glass_parallel_plate.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -525,7 +525,7 @@ glass_parallel_plate_class.GlassParallelPlate(p0, n0, , thickness, length, N, ge
 There are two types of prism elements that live in ```glass_prism_class```. For the first one, a "rectangular prism", one of its internal angles is at 90°, while the other angles are not. The second prism is an isoscele prism, where its internal angles are not (necessarily) 90°, but are defined by the "apex angle". Both prism types can be seen in the image below.
 
 <p align="center">
-<img src="assets/Syntax_prism.png" alt="Syntax_prism.png" height=400/>
+<img src="assets/Syntax_prism.png" alt="Syntax_prism.png" height=300/>
 </p>
 
 ##### Rectangular prism
@@ -651,7 +651,7 @@ from elements import flat_mirror_class, semi_transparent_mirror_class, parabolic
 The figure below shows 2 types of mirrors: regular fully reflecting mirrors and semitransparent mirrors:
 
 <p align="center">
-<img src="assets/Syntax_flat_mirrors.png" alt="Syntax_flat_mirrors.png" height=200/>
+<img src="assets/Syntax_flat_mirrors.png" alt="Syntax_flat_mirrors.png" height=300/>
 </p>
 
 #### Flat mirror
