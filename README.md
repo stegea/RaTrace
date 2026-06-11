@@ -209,10 +209,10 @@ The list of elements in the load_scene module becomes a bit too long to show her
 The GUI has a rather limited number of controls to keep things simple (for now). Most of the controls in the several tabs are self-explanatory, but we will give some clarification nevertheless:
 
 <p align="center">
-<img src="assets/UI_Setup.png" alt="UI_Setup.png" height=100/>
-<img src="assets/UI_Simulation.png" alt="UI_Simulation.png" height=100/>
-<img src="assets/UI_View.png" alt="UI_View.png" height=100/>
-<img src="assets/UI_Display.png" alt="UI_Display.png" height=100/>
+<img src="assets/UI_Setup.png" alt="UI_Setup.png" height=300/>
+<img src="assets/UI_Simulation.png" alt="UI_Simulation.png" height=300/>
+<img src="assets/UI_View.png" alt="UI_View.png" height=300/>
+<img src="assets/UI_Display.png" alt="UI_Display.png" height=300/>
 </p>
 
 ### Setup
