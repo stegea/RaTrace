@@ -209,10 +209,10 @@ The list of elements in the load_scene module becomes a bit too long to show her
 The GUI has a rather limited number of controls to keep things simple (for now). Most of the controls in the several tabs are self-explanatory, but we will give some clarification nevertheless:
 
 <p align="center">
-<img src="assets/UI_Setup.png" alt="UI_Setup.png" height=300/>
-<img src="assets/UI_Simulation.png" alt="UI_Simulation.png" height=300/>
-<img src="assets/UI_View.png" alt="UI_View.png" height=300/>
-<img src="assets/UI_Display.png" alt="UI_Display.png" height=300/>
+<img src="assets/UI_Setup.png" alt="UI_Setup.png" height=500/>
+<img src="assets/UI_Simulation.png" alt="UI_Simulation.png" height=500/>
+<img src="assets/UI_View.png" alt="UI_View.png" height=500/>
+<img src="assets/UI_Display.png" alt="UI_Display.png" height=500/>
 </p>
 
 ### Setup
@@ -261,12 +261,12 @@ The display tab is only enabled when there is a display or an imager present in 
 * <b>Phase plot : </b>This too only works with imagers. This shows the phases of the rays at the intersection points, as well as the resulting phase.
 
 <p align="center">
-<img src="assets/UI_Display_Scatterplot_1D.png", alt="UI_Display_Scatterplot_1D.png", height=100/>
-<img src="assets/UI_Display_Scatterplot_2D.png", alt="UI_Display_Scatterplot_2D.png", height=100/>
-<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png", alt="UI_Display_Pseudo_polar_scatter_plot.png", height=100/>
-<img src="assets/UI_Display_Intensity_plot_1D.png", alt="UI_Display_Intensity_plot_1D.png", height=100/>
-<img src="assets/UI_Display_Intensity_plot_2D.png", alt="UI_Display_Intensity_plot_2D.png", height=100/>
-<img src="assets/UI_Display_Phase_plot.png", alt="UI_Display_Phase_plot.png", height=100/>
+<img src="assets/UI_Display_Scatterplot_1D.png" alt="UI_Display_Scatterplot_1D.png" height=100/>
+<img src="assets/UI_Display_Scatterplot_2D.png" alt="UI_Display_Scatterplot_2D.png" height=100/>
+<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png" alt="UI_Display_Pseudo_polar_scatter_plot.png" height=100/>
+<img src="assets/UI_Display_Intensity_plot_1D.png" alt="UI_Display_Intensity_plot_1D.png" height=100/>
+<img src="assets/UI_Display_Intensity_plot_2D.png" alt="UI_Display_Intensity_plot_2D.png" height=100/>
+<img src="assets/UI_Display_Phase_plot.png" alt="UI_Display_Phase_plot.png" height=100/>
 </p>
 
 
@@ -341,7 +341,7 @@ Note that the total angular range of rays exceeds the "fan angle" of the beam in
 
 
 <p align="center">
-<img src="assets/Syntax_point_source.png", alt="Syntax_point_source.png", height=200/>
+<img src="assets/Syntax_point_source.png" alt="Syntax_point_source.png" height=400/>
 </p>
 
 <i>Object initialisation:</i>
@@ -365,7 +365,7 @@ A directed parallel light source object with an origin, orientation, width and e
 Note that the total range of rays exceeds the "diameter" of the beam in case of Gaussian distribution of rays. Since a Gaussian beam has theoretical infinite width, the diameter given as a parameter is considered to be the "full width at half max" (FWHM) of the beam.
 
 <p align="center">
-<img src="assets/Syntax_plane_source.png", alt="Syntax_plane_source.png", height=300/>
+<img src="assets/Syntax_plane_source.png" alt="Syntax_plane_source.png" height=400/>
 </p>
 
 <i>Object initialisation:</i>
@@ -388,7 +388,7 @@ plane_source_class.PlaneSourceClass(p0, n0, diameter, angle, wavelength, intensi
 A directed diffuse parallel light source object with an origin, orientation, width and spread angle. The ray distribution along its diameter, as well as the ray orientation is random within the limits defined. The example below shows the situation for a 20° fan angle.
 
 <p align="center">
-<img src="assets/Syntax_diffuse_plane_source.png", alt="Syntax_diffuse_plane_source.png", height=150/>
+<img src="assets/Syntax_diffuse_plane_source.png" alt="Syntax_diffuse_plane_source.png" height=200/>
 </p>
 
 <i>Object initialisation:</i>
