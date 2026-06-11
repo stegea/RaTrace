@@ -261,14 +261,14 @@ The display tab is only enabled when there is a display or an imager present in 
 * <b>Phase plot : </b>This too only works with imagers. This shows the phases of the rays at the intersection points, as well as the resulting phase.
 
 <p align="center">
-<img src="assets/UI_Display_Scatterplot_1D.png" alt="UI_Display_Scatterplot_1D.png" height=200/>
-<img src="assets/UI_Display_Scatterplot_2D.png" alt="UI_Display_Scatterplot_2D.png" height=200/>
-<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png" alt="UI_Display_Pseudo_polar_scatter_plot.png" height=200/>
+<img src="assets/UI_Display_Scatterplot_1D.png" alt="UI_Display_Scatterplot_1D.png" height=300/>
+<img src="assets/UI_Display_Scatterplot_2D.png" alt="UI_Display_Scatterplot_2D.png" height=300/>
+<img src="assets/UI_Display_Pseudo_polar_scatter_plot.png" alt="UI_Display_Pseudo_polar_scatter_plot.png" height=300/>
 </p>
 <p align="center">
-<img src="assets/UI_Display_Intensity_plot_1D.png" alt="UI_Display_Intensity_plot_1D.png" height=200/>
-<img src="assets/UI_Display_Intensity_plot_2D.png" alt="UI_Display_Intensity_plot_2D.png" height=200/>
-<img src="assets/UI_Display_Phase_plot.png" alt="UI_Display_Phase_plot.png" height=200/>
+<img src="assets/UI_Display_Intensity_plot_1D.png" alt="UI_Display_Intensity_plot_1D.png" height=300/>
+<img src="assets/UI_Display_Intensity_plot_2D.png" alt="UI_Display_Intensity_plot_2D.png" height=300/>
+<img src="assets/UI_Display_Phase_plot.png" alt="UI_Display_Phase_plot.png" height=300/>
 </p>
 
 
@@ -367,7 +367,7 @@ A directed parallel light source object with an origin, orientation, width and e
 Note that the total range of rays exceeds the "diameter" of the beam in case of Gaussian distribution of rays. Since a Gaussian beam has theoretical infinite width, the diameter given as a parameter is considered to be the "full width at half max" (FWHM) of the beam.
 
 <p align="center">
-<img src="assets/Syntax_plane_source.png" alt="Syntax_plane_source.png" height=400/>
+<img src="assets/Syntax_plane_source.png" alt="Syntax_plane_source.png" height=600/>
 </p>
 
 <i>Object initialisation:</i>
@@ -428,7 +428,7 @@ from elements import ideal_thin_lens_class, spherical_lens_class, glass_element_
 An ideal lens (perfect focus, no aberrations) with a certain focal distance f and diameter.
 
 <p align="center">
-<img src="assets/Syntax_ideal_lens.png", alt="Syntax_ideal_lens.png", height=200/>
+<img src="assets/Syntax_ideal_lens.png" alt="Syntax_ideal_lens.png" height=400/>
 </p>
 
 <i>Object initialisation:</i>
@@ -449,7 +449,7 @@ ideal_thin_lens_class.IdealThinLensClass(p0, n0, f, diameter, N, material)
 A glass lens with focal distance f and spherical surfaces with radii R0 and R1. If R0 and R1 are given, f is calculated from those radii. If only f is given, R0 and R1 are calculated from f and the lens is considered symmetrical, i.e. R0 and R1 are equal in magnitude.
 
 <p align="center">
-<img src="assets/Syntax_spherical_lens.png", alt="Syntax_spherical_lens.png", height=200/>
+<img src="assets/Syntax_spherical_lens.png" alt="Syntax_spherical_lens.png" height=400/>
 </p>
 
 <i>Object initialisation:</i>
@@ -474,7 +474,7 @@ spherical_lens_class.SphericalLensClass(p0, n0, R0, R1, f, thickness, diameter, 
 A glass lens with focal distance f and spherical front surface with radius R and flat back surface. If R is given, f is calculated from that radius. If only f is given, R is calculated from f.
 
 <p align="center">
-<img src="assets/Syntax_plano_spherical_lens.png", alt="Syntax_plano_spherical_lens.png", height=200/>
+<img src="assets/Syntax_plano_spherical_lens.png" alt="Syntax_plano_spherical_lens.png" height=400/>
 </p>
 
 <i>Object initialisation:</i>
@@ -501,7 +501,7 @@ plano_spherical_lens_class.PlanoSphericalLensClass(p0, n0, R, f, thickness, diam
 A simple glass parallel plate with a length and a thickness
 
 <p align="center">
-<img src="assets/Syntax_glass_parallel_plate.png", alt="Syntax_glass_parallel_plate.png", height=200/>
+<img src="assets/Syntax_glass_parallel_plate.png" alt="Syntax_glass_parallel_plate.png" height=400/>
 </p>
 
 <i>Object initialisation:</i>
@@ -525,7 +525,7 @@ glass_parallel_plate_class.GlassParallelPlate(p0, n0, , thickness, length, N, ge
 There are two types of prism elements that live in ```glass_prism_class```. For the first one, a "rectangular prism", one of its internal angles is at 90°, while the other angles are not. The second prism is an isoscele prism, where its internal angles are not (necessarily) 90°, but are defined by the "apex angle". Both prism types can be seen in the image below.
 
 <p align="center">
-<img src="assets/Syntax_prism.png", alt="Syntax_prism.png", height=200/>
+<img src="assets/Syntax_prism.png" alt="Syntax_prism.png" height=400/>
 </p>
 
 ##### Rectangular prism
@@ -580,7 +580,8 @@ A diffuse scattering surface scatters an incoming ray in a way defined by its bi
 The figures below show a single incoming ray (coming from the bottom left) casted onto a surface with BRDF parameters Kd=1, Ks=2, alpha=100. The peak of the plotted BRDF points in the reflected direction of the incoming ray.
 
 <p align="center">
-<img src="assets/Syntax_diffuse_scattering_plate_1.png", alt="Syntax_diffuse_scattering_plate_1.png", height=150/><img src="assets/Syntax_diffuse_scattering_plate_2.png", alt="Syntax_diffuse_scattering_plate_2.png", height=150/>
+<img src="assets/Syntax_diffuse_scattering_plate_1.png" alt="Syntax_diffuse_scattering_plate_1.png" height=300/>
+<img src="assets/Syntax_diffuse_scattering_plate_2.png" alt="Syntax_diffuse_scattering_plate_2.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -603,7 +604,7 @@ diffuse_plate_class.DiffusePlateClass(p0, n0, length, thickness, Kd=1, Ks, alpha
 A black plate can be used as a beam dump, or for outlining light absorbing walls like lens tubes, telescopic tubes, etc. In the figure below, note that non-colliding rays are colored differently, IF at all (see "view" settings).
 
 <p align="center">
-<img src="assets/Syntax_black_plate.png", alt="Syntax_black_plate.png", height=200/>
+<img src="assets/Syntax_black_plate.png" alt="Syntax_black_plate.png" height=200/>
 </p>
 
 <i>Object initialisation:</i>
@@ -623,7 +624,7 @@ black_plate_class.BlackPlateClass(p0, n0, length, thickness, plot_color)
 An aperture with an inner and outer diameter
 
 <p align="center">
-<img src="assets/Syntax_aperture.png", alt="Syntax_aperture.png", height=200/>
+<img src="assets/Syntax_aperture.png" alt="Syntax_aperture.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -650,7 +651,7 @@ from elements import flat_mirror_class, semi_transparent_mirror_class, parabolic
 The figure below shows 2 types of mirrors: regular fully reflecting mirrors and semitransparent mirrors:
 
 <p align="center">
-<img src="assets/Syntax_flat_mirrors.png", alt="Syntax_flat_mirrors.png", height=200/>
+<img src="assets/Syntax_flat_mirrors.png" alt="Syntax_flat_mirrors.png" height=200/>
 </p>
 
 #### Flat mirror
@@ -689,7 +690,7 @@ semi_transparent_mirror_class.SemiTransparentMirror(p0, n0, length, transmission
 A parabolic mirror with a focal distance and a diameter
 
 <p align="center">
-<img src="assets/Syntax_parabolic_mirror.png", alt="Syntax_parabolic_mirror.png", height=200/>
+<img src="assets/Syntax_parabolic_mirror.png" alt="Syntax_parabolic_mirror.png" height=200/>
 </p>
 
 <i>Object initialisation:</i>
