@@ -162,13 +162,20 @@ class ImagerClass(display_class.DisplayClass):
 
     def plot(self, graph):
         super().plot(graph)
-        # if config.getboolean('view', 'show_pixels'):
-        #     for pixel in self.pixels:
-        #         pixel.plot(graph)
-        #     graph.scatter(self.pixels[ 0].p0[X],    self.pixels[0].p0[Y],   s=20, facecolor='g', marker='o')
-        #     graph.scatter(self.p0[X],               self.p0[Y],             s=20, facecolor='g', marker='o')
-        #     graph.scatter(self.pixels[-1].p0[X],    self.pixels[0-1].p0[Y], s=20, facecolor='g', marker='o')
-        #     graph.text(self.pixels[0].p0[X]  - 0.2*self.n0[X], self.pixels[0].p0[Y]  - 0.2*self.n0[Y],  f'pixel 0: p=[{self.pixels[0].p0[X]:.3f}, {self.pixels[0].p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
-        #     graph.text(self.p0[X]            - 0.2*self.n0[X], self.p0[Y]            - 0.2*self.n0[Y],  f'pixel {self.nr_of_pixels/2-1}: p=[{self.p0[X]:.3f}, {self.p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
-        #     graph.text(self.pixels[-1].p0[X] - 0.2*self.n0[X], self.pixels[-1].p0[Y] - 0.2*self.n0[Y],  f'pixel {self.nr_of_pixels-1}: p=[{self.pixels[-1].p0[X]:.3f}, {self.pixels[-1].p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
+        if config.getboolean('view', 'show_pixels'):
+
+            # Plot the pixel boundaries
+            dn = self.pixel_size/2 * self.n0
+            for i_px in range(self.nr_of_pixels + 1):
+                graph.plot(self.px_pts_2D[X][i_px]+dn[X]*np.array([-1,1]), self.px_pts_2D[Y][i_px]+dn[Y]*np.array([-1,1]), color='g', linewidth=1)
+
+            # Plot the start, middle and end of the imager
+            graph.scatter(self.px_pts_2D[X][0],   self.px_pts_2D[Y][0],   s=20, facecolor='g', marker='o')
+            graph.scatter(self.px_pts_2D[X][-1],  self.px_pts_2D[Y][-1],  s=20, facecolor='g', marker='o')
+            graph.scatter(self.p0[X],             self.p0[Y],             s=20, facecolor='g', marker='o')
+
+            # Plot the positions of the start, middle and end of the imager
+            graph.text(self.px_pts_2D[X][0]  - 0.2*self.n0[X], self.px_pts_2D[Y][0]  - 0.2*self.n0[Y],  f'pixel 0: p=[{self.px_pts_2D[X][0]:.3f}, {self.px_pts_2D[Y][0]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
+            graph.text(self.p0[X]            - 0.2*self.n0[X], self.p0[Y]            - 0.2*self.n0[Y],  f'pixel {self.nr_of_pixels/2-1}: p=[{self.p0[X]:.3f}, {self.p0[Y]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
+            graph.text(self.px_pts_2D[X][-1] - 0.2*self.n0[X], self.px_pts_2D[Y][-1] - 0.2*self.n0[Y],  f'pixel {self.nr_of_pixels-1}: p=[{self.px_pts_2D[X][-1]:.3f}, {self.px_pts_2D[Y][-1]:.3f}]', color='g', horizontalalignment='left', verticalalignment='center', fontsize=8)
 

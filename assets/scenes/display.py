@@ -2,6 +2,8 @@ import numpy as np
 import os, sys
 sys.path.append(os.path.abspath('..'))
 
+# For display and imager visualization, simulate 10k rays, put the intensity scaler on 5 or so, so that the dots are visible.
+
 from utils.varia import mm, deg, nm, µm
 from light import plane_source_class
 from display import imager_class

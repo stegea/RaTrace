@@ -604,7 +604,7 @@ diffuse_plate_class.DiffusePlateClass(p0, n0, length, thickness, Kd=1, Ks, alpha
 A black plate can be used as a beam dump, or for outlining light absorbing walls like lens tubes, telescopic tubes, etc. In the figure below, note that non-colliding rays are colored differently, IF at all (see "view" settings).
 
 <p align="center">
-<img src="assets/Syntax_black_plate.png" alt="Syntax_black_plate.png" height=200/>
+<img src="assets/Syntax_black_plate.png" alt="Syntax_black_plate.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -690,7 +690,7 @@ semi_transparent_mirror_class.SemiTransparentMirror(p0, n0, length, transmission
 A parabolic mirror with a focal distance and a diameter
 
 <p align="center">
-<img src="assets/Syntax_parabolic_mirror.png" alt="Syntax_parabolic_mirror.png" height=200/>
+<img src="assets/Syntax_parabolic_mirror.png" alt="Syntax_parabolic_mirror.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -721,7 +721,8 @@ from display import display_class, imager_class
 A display is a stopping surface for colliding rays. Contrary to black and other surfaces, the collision points can be processed and displayed in the 'view' tab.
 
 <p align="center">
-<img src="assets/Syntax_display_1.png", alt="Syntax_display_1.png", width=200, height=200/><img src="assets/Syntax_display_2.png", alt="Syntax_display_2.png", width=200, height=200/>
+<img src="assets/Syntax_display_1.png" alt="Syntax_display_1.png" height=300/>
+<img src="assets/Syntax_display_2.png" alt="Syntax_display_2.png" height=300/>
 </p>
 
 <i>Object initialisation:</i>
@@ -740,7 +741,8 @@ display_class.DisplayClass(p0, n0, length)
 An imager is a display with pixels of a finite width. If 'use phase information' is enabled, the phases of different rays coming together in a pixel will combine and result in an interfered intensity. When this option is disabled, all rays are presumed to have the same phase, and intensities are just added up.
 
 <p align="center">
-<img src="assets/Syntax_imager_1.png", alt="Syntax_imager_1.png", width=200, height=200/><img src="assets/Syntax_imager_2.png", alt="Syntax_imager_2.png", width=200, height=200/>
+<img src="assets/Syntax_imager_1.png" alt="Syntax_imager_1.png", height=300/>
+<img src="assets/Syntax_imager_2.png" alt="Syntax_imager_2.png", height=300/>
 </p>
 
 <i>Object initialisation:</i>

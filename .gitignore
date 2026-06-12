@@ -1,12 +1,15 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[ocd]
 build/
 dist/
 wheels/
 *.egg-info
 
 # Virtual environments
+.env
 .venv
 *.bak
 /scenes_all
+env/
+venv/
